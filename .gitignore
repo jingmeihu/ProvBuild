@@ -3,4 +3,5 @@
 /capture/noworkflow/result.txt
 capture/noworkflow/time.txt
 capture/noworkflow/session.txt
-/capture/noworkflow/ProvScript.txt
+/capture/noworkflow/ProvScript.py
+new-*.py
