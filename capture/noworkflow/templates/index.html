@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+      <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+      <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+   </head>
+   <body>
+
+   <!-- Sidebar -->
+<div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
+  <h3 class="w3-bar-item">Actions</h3>
+</div>
+
+<!-- Page Content -->
+<div style="margin-left:20%">
+
+<div class="w3-container w3-teal">
+  <h1>ProvBuild</h1>
+</div>
+      <div class="container">
+                 
+         <div class="jumbotron">
+                        
+            <h1>Welcome</h1>
+            <p>ProvBuild is an incremental compilation application that automates information extraction from the provenance and optimizes information extraction from the provenance and optimizes the script modification and execution process.</p>
+
+            <p>To get started, upload a python script</p>
+            <p class="lead"></p>
+
+            <p>ProvBuild</p>
+            <form action = "http://localhost:5000/uploader" method = "POST" 
+               enctype = "multipart/form-data">
+               <input type = "file" name = "file" />
+               <input type = "submit"/>
+            </form>
+            <br>
+            <p>Normal</p>
+            <form action = "http://localhost:5000/normal" method = "POST" 
+               enctype = "multipart/form-data">
+               <input type = "file" name = "file" />
+               <input type = "submit"/>
+            </form>
+
+         </div>
+                 
+         <footer class="footer">
+                    
+            <p>&copy; Fall 2017 CS279 Crystal Hu and Yuna Joung</p>
+                
+         </footer>
+          
+             
+      </div>
+   </body>
+    
+</html>

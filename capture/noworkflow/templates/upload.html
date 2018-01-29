@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+   <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+   <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet">
+   <title></title>
+</head>
+<body>
+
+<script>
+function saveEdits() {
+   //get the editable element
+   var editElem = document.getElementById("provscript").innerHTML;
+   //save the content to local storage
+   document.getElementById("submitprov").value = editElem;
+}
+</script>
+   <!-- Sidebar -->
+   <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
+      <h3 class="w3-bar-item">Actions</h3>
+      <form action="/update" method="post">
+         <div class="container">
+            Function name:<br>
+            <input name="function" type="text" value="">
+         </div><button class="w3-bar-item w3-button" name="forwardBtn" type="submit"><b>Update</b></button>
+      </form><br>
+      <form action="/merge" method="post">
+         <button class="w3-bar-item w3-button" name="forwardBtn" type="submit"><b>Merge</b></button>
+      </form><br>
+      <form action="http://localhost:5000/uploader" enctype="multipart/form-data" method="post">
+         <div class="container">
+            <p><b>Upload a new file:</b></p><input name="file" type="file"> <input type="submit">
+         </div>
+      </form>
+   </div><!-- Page Content -->
+   <div style="margin-left:20%">
+      <div class="w3-container w3-teal">
+         <h1>ProvBuild</h1>
+      </div>
+      <div class="container">
+         <h1>Dashboard</h1>
+         <h5>Uploaded file:</h5><code>{{user_file}}</code><br><br>
+         <p style="color:red"><b>{{message}}</b></p>
+         <p>Terminal</p>
+         <pre style="border: 2px solid #666; padding: 10px; background-color: #c0c3c6;">{{ output }}</pre>
+         <p>Results</p>
+         <pre style="border: 2px solid #666; padding: 10px; background-color: #ccdfff;">{{ result }}</pre>
+         <div style="width:100%;">
+            <div style="width:49%; float:left;">
+               <p>{{user_file}}</p>
+               <pre style="border: 2px solid #666; background-color: #fff7b7;">{{ content }}</pre>
+            </div>
+            <div style="width:49%; float:right;">
+               <p>ProvScript.py</p>
+               <pre id="provscript" style="border: 2px solid #666; background-color: #f7de71;" contenteditable="true"> {{ provscript }}</pre>
+
+               <form action="/runupdate" method="post">
+                  <button class="w3-bar-item w3-button" name="provscript" onclick="saveEdits()" id="submitprov" type="submit" ><b>Runupdate</b></button>
+               </form><br>
+            </div>
+         </div><br>
+         <br>
+      </div>
+      <footer class="footer" style="clear:both;">
+         <p>&copy; Fall 2017 CS279 Crystal Hu and Yuna Joung</p>
+      </footer>
+   </div>
+</body>
+</html>
