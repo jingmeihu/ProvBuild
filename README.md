@@ -1,6 +1,6 @@
 # ProvBuild
 
-## how to run it
+## how to run it manually
 1) cd into noworkflow directory:
 
 `cd capture/noworkflow`
@@ -28,3 +28,25 @@
 `python __init__.py merge -t 1`
 
 we name the new script _new-test.py_ and store it in the same directory.
+
+
+## how to run it automatically
+1) cd into noworkflow directory:
+
+`cd capture/noworkflow`
+
+2) run (test file name):
+
+`./make.sh r test.py`
+
+3) modify function (trial id, function name):
+
+`./make.sh u 1 func_1`
+
+4) run update:
+
+`./make.sh d`
+
+5) merge (trial id):
+
+`./make.sh m 1`
