@@ -39,14 +39,18 @@ we name the new script _new-test.py_ and store it in the same directory.
 
 `./make.sh r test.py`
 
-3) modify function (trial id, function name):
+3) modify function (function name):
 
-`./make.sh u 1 func_1`
+`./make.sh uf func_1`
 
-4) run update:
+4) modify variable (variable name):
+
+`./make.sh uv var_1`
+
+5) run update:
 
 `./make.sh d`
 
-5) merge (trial id):
+6) merge:
 
-`./make.sh m 1`
+`./make.sh m`
