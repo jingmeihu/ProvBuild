@@ -26,10 +26,22 @@ def file_write(n, m, x, y, z):
 x = func_3(10)
 y = func_3(20)
 n = func_3(30)
+a = func_3(5)
 y, z = func_1(x, y, 1) 
-m = func_2(y, z) 
+m = func_2(y, z)
+if m % 2 == 0:
+	l = func_2(x, z) 
+elif y % 2 == 0:
+	l = func_2(x, z) + 1
+else:
+	l = func_2(x, z) + 2
+for i in range(1,5):
+	m += func_2(y,i)
+while l > 0:
+	l -= 10
 print(n)
 print(m)
+print(l)
 print(x)
 print(y)
 print(z)
