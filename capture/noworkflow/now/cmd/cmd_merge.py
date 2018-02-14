@@ -57,6 +57,23 @@ def check_line_number(content):
     else:
         return 0
 
+def remove_comment_lineno(content):
+    numberofhash = 0
+    cont = 0
+    for i in range(0, len(content)):
+        if(numberofhash == 5):
+            break
+        if content[i] == '#':
+            cont = 1
+            numberofhash = numberofhash +1
+        else:
+            cont = 0
+            numberofhash = 0
+    ret_content = content[0:i-5] + '\n'
+    return ret_content
+
+
+
 class Merge(Command):
     """ Merge ProvScript into the previous script based on the user input (trial id) """
 
@@ -146,7 +163,8 @@ class Merge(Command):
                         update_lines.remove(ln)
                 # add the ProvScript version
                 content = linecache.getline('ProvScript.py', provscript_line_index)
-                new_file.write(content)
+                new_content = remove_comment_lineno(content)
+                new_file.write(new_content)
             else:
                 content = linecache.getline(previous_trial.script, j)
                 new_file.write(content)
