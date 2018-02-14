@@ -1,25 +1,30 @@
 #!/bin/sh
-echo "I have several commands: r-run, u-update, d-runupdate, m-merge"
+echo "I have several commands: r-run, uf-update function, uv-update variable, d-runupdate, m-merge"
 case "$1" in
 	r)
 		echo "Remove the .noworkflow folder ..."
 		rm -r .noworkflow
 		echo "The test file name is $2 ..."
-		python __init__.py run -v "$2"
+		python __init__.py run "$2"
 		;;
-	u)
-		echo "The trial id is $2 ..."
-		echo "The function name is $3 ..."
-		python __init__.py update -t "$2" -fn "$3"
+	uf)
+		echo "The trial id is 1 ..."
+		echo "The function name is $2 ..."
+		python __init__.py update -t 1 -fn "$2" --debug 1
+		;;
+	uv)
+		echo "The trial id is 1 ..."
+		echo "The variable name is $2 ..."
+		python __init__.py update -t 1 -vn "$2" --debug 1
 		;;
 	d)
-		echo "Generate ProvScript.py ..."
+		echo "Compile ProvScript.py ..."
 		python __init__.py runupdate ProvScript.py
 		;;
 	m)
-		echo "The trial id is $2 ..."
+		echo "The trial id is 1 ..."
 		echo "Generate new file ..."
-		python __init__.py merge -t "$2"
+		python __init__.py merge -t 1
 		;;
 	*) 
 		echo "Invalid command"
