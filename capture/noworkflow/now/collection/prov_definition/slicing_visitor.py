@@ -430,6 +430,8 @@ class SlicingVisitor(FunctionVisitor):                                          
         self.visit(node.iter)
         self.visit_stmts(node.body)
         self.visit_stmts(node.orelse)
+        ### fake function definition for loop statement: 2 for loop
+        super(SlicingVisitor, self).visit_FunctionDef(node, 2)
 
     def visit_AsyncFor(self, node):                                              # pylint: disable=invalid-name
         """Visit For. Create dependencies. Python 3.5"""
@@ -452,6 +454,9 @@ class SlicingVisitor(FunctionVisitor):                                          
         self.visit_stmts(node.body)
         self.visit_stmts(node.orelse)
         self.condition_stack.pop()
+
+        ### fake function definition for if statement: 3 for if
+        super(SlicingVisitor, self).visit_FunctionDef(node, 3)
 
     def visit_Name(self, node):                                                  # pylint: disable=invalid-name
         """Visit Name. Crate Usage"""
