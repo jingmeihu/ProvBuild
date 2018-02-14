@@ -25,6 +25,11 @@ from .command import Command
 
 import linecache
 
+def debug_print(string, content, arg=True):
+    if arg == True:
+        print('{} is {}'.format(string, content))
+    return
+
 def non_negative(string):
     """Check if argument is >= 0"""
     value = int(string)
@@ -40,6 +45,35 @@ def get_closest_graybox(fileid, result_variable):
             res = i;
             break;
     return (res+1) ### actual variable id needs +1
+
+def get_same_line_call(line, result_variable):
+    res = []
+    for r in result_variable:
+        if r.line == line and r.type == 'call' and r.id not in res:
+            res.append(r.id)
+    return res
+    
+# check if content contains if(return 1), elif(return 2), else(return 3)
+def check_cond(line, result_functiondef):
+    res = []
+    for i in result_functiondef:
+        if line not in res and line >= i.first_line and line <= i.last_line:
+            for j in range(i.first_line, i.last_line+1):
+                res.append(j)
+    return res
+    
+# given current line, check its function definition ID (or cond ID or loop ID)
+def check_def_id(line, result_functiondef):
+    for i in result_functiondef:
+        if line >= i.first_line and line <= i.last_line:
+            return i.id
+    return 0
+    
+def find_active_id(name, line, result_functionactivation):
+    for r in result_functionactivation:
+        if r.line == line and r.name == name:
+            return r.id
+    return 0
 
 class Update(Command):
     """ Create ProvScript based on the user input """
@@ -59,6 +93,7 @@ class Update(Command):
                 help="function name input")
         add_arg("-vn", "--varname", type=str,
                 help="variable name input")
+        add_arg("--debug", type = int, default=1, help="enable debug")
 
     def execute(self, args):
         # first, we need to restore the metascript based on trial id
@@ -75,8 +110,9 @@ class Update(Command):
                 args="<update {}>".format(metascript.trial_id), run=False
             )
         )
+        debug_mode = args.debug
 
-        print ('Before we start, let me be clear:')
+        # print ('Before we start, let me be clear:')
         print ('You are dealing with Trial {} '.format(args.trial))
         if args.funcname is not None:
             print ('You are dealing with Function {} '.format(args.funcname))
@@ -87,7 +123,7 @@ class Update(Command):
         result_trial = trial.pull_content(trial.id)
         # metascript.trial.push_content(metascript.trial_id, result_trial)
         trial_table = trial.__table__
-        print ('Step 0: Trial prov: {}'.format(trial_table))
+        ### print ('Step 0: Trial prov: {}'.format(trial_table))
 
         # definition provenance part
         # for function_def
@@ -95,7 +131,7 @@ class Update(Command):
         result_functiondef = function_def.pull_content(trial.id)
         # function_def.push_content(metascript.trial_id, result_functiondef)
         function_def_table = function_def.__table__
-        print ('Step 1: Definition prov: {}'.format(function_def_table))
+        ### print ('Step 1: Definition prov: {}'.format(function_def_table))
 
         # collect all the function definitions
         func_defs = []
@@ -108,7 +144,14 @@ class Update(Command):
         # result_object = object.pull_content(trial.id)
         # object.push_content(metascript.trial_id, result_object)
         # object_table = object.__table__
-        # print ('Step 1.2: we have done with {} table'.format(object_table))
+        # ### print ('Step 2: we have done with {} table'.format(object_table))
+
+        # # for object_value
+        # object_value = ObjectValue(trial_ref=args.trial)
+        # result_objectvalue = object_value.pull_content(trial.id)
+        # object_value.push_content(metascript.trial_id, result_objectvalue)
+        # object_value_table = object_value.__table__
+        # ### print ('Step 3: we have done with {} table'.format(object_value_table))
 
         # # deployment provenance part
         # # for dependency
@@ -142,8 +185,9 @@ class Update(Command):
         result_variable = variable.pull_content(trial.id)
         # variable.push_content(metascript.trial_id, result_variable)
         variable_table = variable.__table__
-        print ('Step 2: Execution prov: {}'.format(variable_table))
+        ### print ('Step 4: Variable prov: {}'.format(variable_table))
 
+        # get the global variable declarations here
         var_defs = []
         for r in result_variable:
             if r.activation_id == 1 and r.type == 'normal':
@@ -156,125 +200,105 @@ class Update(Command):
         result_variabledependency = variable_dependency.pull_content(trial.id)
         # variable_dependency.push_content(metascript.trial_id, result_variabledependency)
         variable_dependency_table = variable_dependency.__table__
-        print ('Step 3: Execution prov: {}'.format(variable_dependency_table))
+        ### print ('Step 3: Variable Dependency prov: {}'.format(variable_dependency_table))
 
-        # # for variable_usage
-        # variable_usage = VariableUsage(trial_ref=args.trial)
-        # result_variableusage = variable_usage.pull_content(trial.id)
+        # for variable_usage
+        variable_usage = VariableUsage(trial_ref=args.trial)
+        result_variableusage = variable_usage.pull_content(trial.id)
         # variable_usage.push_content(metascript.trial_id, result_variableusage)
-        # variable_usage_table = variable_usage.__table__
+        variable_usage_table = variable_usage.__table__
         # print ('Step 3.4: we have done with {} table'.format(variable_usage_table))
 
         # for function_activation
 
         function_activation = Activation(trial_ref=args.trial)
         result_functionactivation = function_activation.pull_content(trial.id)
-        ### get the script file name - full path
-        # for r in result_functionactivation:
-        #     if (r.id == 1):
-        #         script_name = r.name
-        #         break
-
         ### if the input is function name, we are dealing with function
         if args.funcname is not None:
             ### store function_activation_id
-            funcids = []
-            funcnames = []
+            downstream_func = []
+            given_funcids = []
             upstream_func = [] ## if given func is not global function, collect its upstream functions
-            upstream_funcname = []
             ### first, we get function_activation id for given function
             for r in result_functionactivation:
                 if(r.name == args.funcname):
-                    funcids.append(r.id)
-                    #funcnames.append(r.name)
-                    #given_funcid = r.id
-                    given_funcname = r.name
-                    #break
-            #print(funcids)
-            ### if the caller_id of this function is not global, we should get some upstream as well
-            for i in funcids:
-                for r in result_functionactivation:
-                    if r.id == i and r.caller_id != 1:
-                        funcids.append(r.caller_id)
-                        upstream_func.append(r.caller_id)
-                        #funcnames.append(r.name)
-            ### then, we get the downstream function_activation ids
-            for i in funcids:
-                for r in result_functionactivation:
-                    if (r.caller_id == i):
-                        funcids.append(r.id)
-                        #funcnames.append(r.name)
-            # print(funcids)
-            funcids.append(1)
-            funcids = list(set(funcids))
-            funcids.sort()
-            # print(funcids)
-            upstream_func = list(set(upstream_func))
-            upstream_func.sort()
-            #print(upstream_func)
-
-            for i in funcids:
-                for r in result_functionactivation:
-                    if r.id == i:
-                        funcnames.append(r.name)
+                    downstream_func.append(r.id)
+                    upstream_func.append(r.id)
+                    given_funcids.append(r.id)
+            given_funcname = args.funcname
+            debug_print("given function ID", given_funcids, debug_mode)
+            debug_print("given function name", given_funcname, debug_mode)
+            ### if the caller_id of this function is not global, we should get their upstream as well
+            debug_print("downstream function", downstream_func, debug_mode)
+            debug_print("upstream function", upstream_func, debug_mode)
             for i in upstream_func:
                 for r in result_functionactivation:
-                    if r.id == i:
-                        upstream_funcname.append(r.name)
-
-            ### store the sub function_activation provenance
-            new_result_functionactivation = []
-            for i in funcids:
+                    if r.id == i and r.caller_id != 1 and r.caller_id not in upstream_func:
+                        upstream_func.append(r.caller_id)
+            ### then, we get the downstream function_activation ids
+            for i in downstream_func:
                 for r in result_functionactivation:
-                    if(r.id == i):
-                        new_result_functionactivation.append(r)
-            ### get the downstream function names
-            fnames = funcnames
+                    if (r.caller_id == i) and r.id not in downstream_func:
+                        downstream_func.append(r.id)
+            debug_print("updated downstream function", downstream_func, debug_mode)
+            debug_print("updated upstream function", upstream_func, debug_mode)
+            related_func = downstream_func + upstream_func
+            debug_print("related function", related_func, debug_mode)
+
+            # ### store the sub function_activation provenance
+            # new_result_functionactivation = []
+            # for r in result_functionactivation:
+            #     if r.id in downstream_func:
+            #         new_result_functionactivation.append(r)
+            # ### get all related function names
+            # # fnames = funcnames
         ### this time, we are dealing with variable instead of function
         else:
             given_varname = args.varname
-            new_result_functionactivation = result_functionactivation
+            debug_print("given variable name", given_varname)
         # function_activation.push_content(metascript.trial_id, new_result_functionactivation)
         function_activation_table = function_activation.__table__
-        print ('Step 4: Execution prov: {}'.format(function_activation_table))
+        # print ('Step 4: Execution prov: {}'.format(function_activation_table))
 
-        # for object_value
-        object_value = ObjectValue(trial_ref=args.trial)
-        result_objectvalue = object_value.pull_content(trial.id)
+        # # for object_value
+        # object_value = ObjectValue(trial_ref=args.trial)
+        # result_objectvalue = object_value.pull_content(trial.id)
 
-        ### if the input is function name, we are dealing with function
-        if args.funcname is not None:
-            ### we have function_activation_id list, and find the corresponding object value for them
-            new_result_objectvalue = []
-            for i in funcids:
-                for r in result_objectvalue:
-                    if (r.function_activation_id == i):
-                        new_result_objectvalue.append(r)
-        ### this time, we are dealing with variable instead of function
-        else:
-            new_result_objectvalue = result_objectvalue
-        # object_value.push_content(metascript.trial_id, new_result_objectvalue)
-        object_value_table = object_value.__table__
-        print ('Step 5: Execution prov: {}'.format(object_value_table))
+        # ### if the input is function name, we are dealing with function
+        # if args.funcname is not None:
+        #     objectids = []
+        #     ### we have function_activation_id list -> downstream_func (not complete yet), and find the corresponding object value for them
+        #     for r in result_objectvalue:
+        #         if r.function_activation_id in related_func:
+        #             objectids.append(r.id)
+        #     # print('\tThe object ID list is {}'.format(objectids))
+        # ### this time, we are dealing with variable instead of function
+        # else:
+        #     new_result_objectvalue = result_objectvalue
+        # # object_value.push_content(metascript.trial_id, new_result_objectvalue)
+        # object_value_table = object_value.__table__
+        # print ('Step 5: Execution prov: {}'.format(object_value_table))
 
         #########################################
-        print("I think we are done with the provenance part")
-        print("So, now we will start to create a ProvScript for you")
+        # print("I think we are done with the provenance part")
+        # print("So, now we will start to create a ProvScript for you")
         #########################################
 
-        print ('The origin script name is: {}'.format(metascript.name))
+        # print ('The origin script name is: {}'.format(metascript.name))
         origin_file = open(metascript.name, "r")
         ### open a new file to store sub script
         update_file = open("ProvScript.py", "w")
 
         ### function definition bound
-        update_file.write("# This is the function declaration part - Your previous script contains the following function definitions:\n")
+        update_file.write("# This is the function declaration part\n")
+        update_file.write("# - Your previous script contains the following function definitions:\n")
         func_defs_str = ""
         for f in func_defs:
             func_defs_str = func_defs_str + '###' + f + '\n'
         update_file.write(func_defs_str)
 
-        update_file.write("# This is the variable declaration part - Your previous script contains the following variable:\n")
+        update_file.write("# This is the global variable declaration part\n")
+        update_file.write("# - Your previous script contains the following global variable:\n")
         var_defs_str = ""
         for f in var_defs:
             var_defs_str = var_defs_str + '###' + f + '\n'
@@ -285,194 +309,229 @@ class Update(Command):
         ### first, we will deal with the function name input
         if args.funcname is not None:
             ### first, given_funcid might be activated several times
-            ### so, we have to collect all the activation id for this given_func
-            #print(given_funcname)
-            given_funcids = []
-            for r in result_functionactivation:
-                if r.name == given_funcname:
-                    given_funcids.append(r.id)
-            #print(given_funcids)
-
+            ### we already store all the ids in given_funcids
 
             ### function return setup
             ### get the return id
             returnids = []
             for r in result_variable:
-                if r.activation_id in given_funcids:
-                    if r.name == 'return':
-                        returnids.append(r.id)
-            # print(returnids)
+                if r.activation_id in related_func:
+                    returnids.append(r.id)
+            # returnids.sort()
+            debug_print("given function's return value ID", returnids, debug_mode)
 
             ### trace the return dependency and update returnids list to store all related functions, variables and so on
-            for t in returnids:
+            ### TODO: need more efficient algorithm here!!!
+            # source_id is dependent on target_id, so we need all source_id if we change target_id
+            for c in returnids:
                 for r in result_variabledependency:
-                    if r.target_id == t and r.source_id not in returnids:
+                    if r.target_id == c and r.source_id not in returnids:
+                        # print("{} -> {}".format(r.target_id, r.source_id))
                         returnids.append(r.source_id)
-            # print(list(set(returnids)))
+            # returnids.sort()
+            debug_print("updated dependency list (with source_id)", returnids, debug_mode)
+            # also, some source_id may depend on something else, we will trace back (for normal and arg), add them as well
+            loop_list = []
+            condition_list = []
+            for c in returnids:
+                for r in result_variabledependency:
+                    if r.source_id == c: 
+                        if r.type == "loop":
+                            # loop_list.append(r.id)
+                            loop_list.append(r.target_id)
+                            if r.target_id not in returnids:
+                                returnids.append(r.target_id)
+                        if r.type == "conditional":
+                            # condition_list.append(r.id)
+                            condition_list.append(r.target_id)
+                            if r.target_id not in returnids:
+                                returnids.append(r.target_id)
+            returnids.sort()
+            debug_print("dependency list (with loop and cond)", returnids, debug_mode)
+            debug_print("loop list", loop_list, debug_mode)
+            debug_print("cond list", condition_list, debug_mode)
+
+            ### deal with loop and condition cases
+            for u in result_variableusage:
+                if u.variable_id in loop_list and u.line not in line_list:
+                    line_list.append(u.line)
+            if_line_list = []
+            for u in result_variableusage:
+                if u.variable_id in condition_list and u.line not in if_line_list:
+                    if_line_list.append(u.line)
+            for i in if_line_list:
+                line_list += check_cond(i, result_functiondef)
+            # print(line_list)
+
             argids = []
+            callids = []
+            param_ids = []
             filewriteids = []
             grayboxids = []
-            funcall = []
-            for r in result_variable:
-                for t in returnids:
-                    if r.id == t:
-                        if r.type == '--graybox--': # don't need graybox
-                            grayboxids.append(t)
-                            returnids.remove(t)
-                        if r.type == '--blackbox--': # don't need blackbox
-                            returnids.remove(t)
-                        if r.type == 'normal': # add the variable assignment
-                            line_list.append(r.line)
-                            returnids.remove(t)
-                        if r.type == 'virtual': # don't need return value
-                            returnids.remove(t)
-                        if r.type == 'param': # don't need param value
-                            line_list.append(r.line)
-                            funcall.append(r.activation_id)
-                            returnids.remove(t)
-                        if r.type == 'arg': # deal with arg later
-                            argids.append(t)
-                            returnids.remove(t)
-                        if r.name == 'file.write': # file write is special case here
-                            ### since file.write depends on the previous one, we might add some unrelevant file.write here
-                            filewriteids.append(t)
+            active_funcall = []
+            normal_ids = []
+            remove_returnids = []
+            add_returnids = []
+            for t in returnids:
+                r = result_variable[t-1]
+                if r.type == '--graybox--': # don't need graybox, discuss later
+                    grayboxids.append(t)
+                    remove_returnids.append(t)
+                if r.type == '--blackbox--': # don't need blackbox
+                    remove_returnids.append(t)
+                if r.type == 'normal': # add the variable assignment
+                    normal_ids.append(t)
+                    if r.line not in line_list:
+                        line_list.append(r.line)
+                    remove_returnids.append(t)
+                if r.type == 'virtual': # don't need return value
+                    remove_returnids.append(t)
+                if r.type == 'param': # deal with param later
+                    param_ids.append(t)
+                    if r.line not in line_list:
+                        line_list.append(r.line)
+                    if r.activation_id not in active_funcall:
+                        active_funcall.append(r.activation_id)
+                    remove_returnids.append(t)
+                if r.type == 'arg': # deal with arg later
+                    argids.append(t)
+                    remove_returnids.append(t)
+                if r.type == 'call':
+                    callids.append(t)
+                    add_returnids += get_same_line_call(r.line, result_variable)
+                    if r.activation_id not in active_funcall:
+                        active_funcall.append(r.activation_id)
+                if r.name == 'file.write': # file write is special case here
+                    ### since file.write depends on the previous one, we might add some unrelevant file.write here
+                    filewriteids.append(t)
+            # filewriteids = list(set(filewriteids))
+            for i in remove_returnids:
+                if i in returnids:
+                    returnids.remove(i)
+            for i in add_returnids:
+                if i not in returnids:
+                    returnids.append(i)
+            debug_print("graybox list", grayboxids, debug_mode)
+            debug_print("normal list", normal_ids, debug_mode)
+            debug_print("active_funcall list", active_funcall, debug_mode)
+            debug_print("arg list", argids, debug_mode)
+            debug_print("call list", callids, debug_mode)
+            debug_print("param list", param_ids, debug_mode)
+            # debug_print("filewrite list", filewriteids, debug_mode)
+            debug_print("updated dependency list", returnids, debug_mode)
+            # print(line_list)
 
-            # XXX: it will include redundant calls without graybox 
-            # XXX: we should check each varid there
-            # XXX: if varids doesn't include the closest graybox in front of it -> invalid function call
-            ### here, we will deal with file.write
-            # print(list(set(varids)))
-            # print(filewriteids)
-            # print(grayboxids)
-            useless_ids = []
-            for f in filewriteids:
-                res = get_closest_graybox(f, result_variable)
-                if res in grayboxids:
-                    continue
-                else: # this means we add some unrelevant file.write, we need to remove those
-                    useless_ids.append(f)
-                    returnids.remove(f)
-
+            # # XXX: it will include redundant calls without graybox 
+            # # XXX: we should check each varid there
+            # # XXX: if varids doesn't include the closest graybox in front of it -> invalid function call
+            # ### here, we will deal with file.write
+            # useless_ids = []
+            # for f in filewriteids:
+            #     res = get_closest_graybox(f, result_variable)
+            #     if res in grayboxids:
+            #         continue
+            #     else: # this means we add some unrelevant file.write, we need to remove those
+            #         useless_ids.append(f)
+            #         returnids.remove(f)
+            # print(useless_ids)
 
             ### the only thing left in returnids is function calls
             returnids = list(set(returnids))
-            # print(argids)
-            # print(returnids)
+            returnids.sort()
+            debug_print("updated dependency list", returnids, debug_mode)
+            # print("\tUpdated dependency list is {}".format(returnids))
 
-            argids = list(set(argids))
-            ### deal with arg - might be 'file' in 'file.write', we need to include the file.open as well
+            ### deal with arg - buildin func argment
+            ### might be 'file' in 'file.write', we need to include the file.open as well
             argnames = []
             for r in result_variable:
-                for a in argids:
-                    if r.id == a:
-                        argnames.append(r.name)
-            #print(argnames)
+                if r.id in argids:
+                    argnames.append(r.name)
+            # argnames = list(set(argnames))
             arg2normalids = []
-            for r in result_variable:
-                for a in argnames:
-                    if r.name == a:
-                        if r.type == 'normal':
+            if 'file' in argnames:
+                for r in result_variable:
+                    if r.name == 'file' and r.type == 'normal':
                             arg2normalids.append(r.id)
-            #print(arg2normalids)
+            # print("\targ to normal ID list is {}".format(arg2normalids))
 
             for r in result_variable:
-                for a in arg2normalids:
-                    if r.id == a:
-                        line_list.append(r.line)
-            #print(line_list)
+                if r.id in arg2normalids and r.line not in line_list:
+                    line_list.append(r.line)
+            # print(line_list)
 
             ### get the func name that relate to the given function
-            var_name = []
-            var_line = []
             var_id = []
             for r in result_variable:
-                for t in returnids:
-                    if r.id == t:
-                        var_name.append(r.name)
-                        var_id.append(r.activation_id)
-                        var_line.append(r.line)
-            # print(var_name)
-            var_id = list(set(var_id))
-            var_id.sort()
-            #print(var_line)
+                if r.id in returnids:
+                    var_id.append(find_active_id(r.name, r.line, result_functionactivation))
+                    var_id.append(r.activation_id)
+            var_id = list(set(var_id + downstream_func))
+            if 0 in var_id:
+                var_id.remove(0)
+            var_id.remove(1)
+            debug_print("var_id", var_id, debug_mode)
+
 
             ### for all related func, get their upstream (if not global)
             var_upstream_func = []
-            var_upstream_funcname = []
-            for i in var_id:
-                for r in result_functionactivation:
-                    if r.id == i and r.caller_id != 1:
-                        var_upstream_func.append(r.caller_id)
-            for i in var_upstream_func:
-                for r in result_functionactivation:
-                    if r.id == i:
-                        var_upstream_funcname.append(r.name)
-            # print(var_upstream_funcname)
-            #print(upstream_funcname)
-
+            for r in result_functionactivation:
+                if r.id in var_id and r.caller_id != 1 and r.id != 1:
+                    var_upstream_func.append(r.caller_id)
 
             ### we might need to add upstream functions (if given function is not global)
-            var_name_upstream = upstream_funcname + var_upstream_funcname
-            var_name_all = var_name + var_name_upstream
-            var_name_upstream = list(set(var_name_upstream))
-            for r in result_variable:
-                if r.name in var_name_upstream:
-                    if result_functionactivation[r.activation_id-1].name in var_name_upstream or r.activation_id == 1:
-                        var_line.append(r.line)
+            var_all = list(set(var_id + upstream_func + var_upstream_func))
+            debug_print("var_all", var_all, debug_mode)
 
-            # print(var_name_upstream)
-            # print(var_line)
-            # print(var_name_all)
+            ### var_name_all: all the related functions (given function) and its upstream functions
+            var_name_all = []
+            for r in result_functionactivation:
+                if r.id in var_all:
+                    var_name_all.append(r.name)
+            debug_print("var_all_name", var_name_all, debug_mode)
 
             # collect global function activation id - need to add the param for it (they might use some edited variable)
             global_func = []
-            for r in result_functionactivation:
-                if r.name == given_funcname:
-                    if r.caller_id == 1:
-                        global_func.append(r.id)
-
             ### add the func execute line and definitions
             for r in result_functionactivation:
-                for v in var_name_all:
-                    if r.name == v:
-                        if r.line in var_line:
-                            line_list.append(r.line)
-                            if r.caller_id == 1:
-                                global_func.append(r.id)
+                if r.id in var_all and r.name in func_defs:
+                    if r.line not in line_list:
+                        line_list.append(r.line)
+                    if r.caller_id == 1:
+                        global_func.append(r.id)
             for r in result_functiondef:
-                for v in var_name_all:
-                    if r.name == v:
-                        for line in range(r.first_line, r.last_line+1):
+                if r.name in var_name_all:
+                    for line in range(r.first_line, r.last_line+1):
+                        if line not in line_list:
                             line_list.append(line)
-            #global_func = list(set(global_func))
-            # print(global_func)
-
-            #print(line_list)
+            for r in result_functionactivation:
+                if r.id in var_all and r.caller_id == 1:
+                    global_func.append(r.id)
+            global_func = list(set(global_func))
+            debug_print("global func activeID", global_func, debug_mode)
+            # print(line_list)
 
             ### get the previous param id for global function
             paramids = []
             paramvalues = []
             for r in result_variable:
-                for g in global_func:
-                    if r.activation_id == g:
-                        if r.type == 'param':
-                            paramids.append(r.id)
-                            paramvalues.append(r.value)
-            paramids = list(set(paramids))
+                if r.activation_id in global_func and r.type == 'param' and r.id not in paramids:
+                    paramids.append(r.id)
+                    paramvalues.append(r.value)
             paramids.sort()
-            # print(paramids)
-            # print (paramnames)
-            # print (paramvalues)
+            debug_print("global func paramID", paramids, debug_mode)
 
             ### trace the param dependency
             param2directids = []
             for p in paramids:
                 for r in result_variabledependency:
                     if r.source_id == p:
-                        if result_variable[r.target_id-1].type != 'normal':
+                        if result_variable[r.target_id-1].type != 'normal' and r.target_id not in paramids:
                             paramids.append(r.target_id)
-                        else:
+                        elif result_variable[r.target_id-1].type == 'normal' and r.target_id not in param2directids:
                             param2directids.append(r.target_id)
+            debug_print("global func paramID (updated)", paramids, debug_mode)
+            debug_print("global func direct paramID", param2directids, debug_mode)
 
             ### remove those param are modified in ProvScript
             ### first, we collect those param assignment lines and compare them with line_list, if they already exist (means that it will modify inside ProvScript), we don't need to do assignment for them
@@ -482,44 +541,40 @@ class Update(Command):
                     if r.id == p:
                         # we will use it later after we collect line_list
                         param2directlines.append(r.line)
-            # print(param2directlines)
             # print(line_list)
-            # print (param2directnames)
 
             ### if the param is included, we should included the function activation as well
             for r in result_functionactivation:
-                if r.id in funcall:
+                if r.id in var_all and r.line not in line_list:
                     line_list.append(r.line)
-
-            ### get the function definition line
-            for r in result_functiondef:
-                for i in fnames:
-                    if r.name == i:
-                        for line in range(r.first_line, r.last_line+1):
-                            line_list.append(line)
-            # print(fnames)
-
-            ### get the execution line
-            for r in new_result_functionactivation:
-                if r.id != 1:
-                    if r.line in line_list:
-                        continue;
-                    else:
-                        line_list.append(r.line)
+            # print(line_list)
 
             ### function param setup
             update_file.write("\n# This is the param setup part - We are going to setup the function params - The following params will be assigned in your original script, but the values are not relevant to your update\n")
-
+            # print(line_list)
             ### get the useless param ids (modified in ProvScript)
             useless_param2directids = []
             for i in range(0,len(param2directids)):
                 if param2directlines[i] in line_list:
                     useless_param2directids.append(param2directids[i])
+            # print(useless_param2directids)
 
             for u in useless_param2directids:
                 param2directids.remove(u)
             # print(param2directids)
             param2directids = list(set(param2directids))
+            debug_print("global func direct paramID (updated)", param2directids, debug_mode)
+
+            ### compare with normal_ids list with param
+            for p in param2directids:
+                if p in normal_ids:
+                    normal_ids.remove(p)
+            # print("\tvariable ID list (updated) is {}".format(normal_ids))
+            for i in result_variable:
+                if i.id in normal_ids and i.line not in line_list:
+                    line_list.append(i.line)
+            # print(line_list)
+
 
             ### get the corresponding names
             param2directnames = []
@@ -542,228 +597,168 @@ class Update(Command):
         # then we deal with the variable input
         else:
             # try to find the variable name when it first appears
-            given_varid = []
+            varid = []
+            varid_copy = []
             for r in result_variable:
-                if r.name == given_varname:
-                    given_varid.append(r.id)
-            #print (given_varid)
+                if r.name == given_varname and r.activation_id == 1:
+                    varid.append(r.id)
+                    varid_copy.append(r.id)
+            debug_print("variable ID", varid)
 
-            varids1 = given_varid
-            for v in varids1:
+            varid_end = []
+            for v in varid_copy:
                 for r in result_variabledependency:
-                    ### check those depends on given_varid 
-                    if r.target_id == v and r.source_id not in varids1:
-                        varids1.append(r.source_id)
-            #print(varids1)
+                    if r.source_id == v and r.target_id not in varid_copy:
+                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
+                            if r.target_id not in varid_end:
+                                varid_end.append(r.target_id)
+                        elif result_variable[r.target_id-1].type == 'function definition':
+                            pass
+                        else:
+                            varid_copy.append(r.target_id)
+            debug_print("variable ID sub list(updated target_id)", varid_copy)
+            debug_print("variable ID end list (updated target_id)", varid_end)
+            varid_copy += varid_end
+            debug_print("variable ID list (updated target_id)", varid_copy)
 
-            varids2 = given_varid
-            for v in varids2:
+            for v in varid_copy:
                 for r in result_variabledependency:
-                    ### check those given_varid depends on
-                    if r.source_id == v and r.target_id not in varids2:
-                        varids2.append(r.target_id)
-            # print(varids1)
-            #print(varids2)
-            varids = varids1 + varids2
-            varids = list(set(varids))
-            #print(varids)
+                    if r.target_id == v and r.source_id not in varid_copy:
+                        print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
+                        varid_copy.append(r.source_id)
+            debug_print("variable ID list (updated source_id)", varid_copy)
+            for i in varid_end:
+                varid_copy.remove(i)
+            varids = varid_copy
 
-            argids = []
-            filewriteids = []
-            grayboxids = []
-            for r in result_variable:
-                for t in varids:
-                    if r.id == t:
-                        if r.type == '--graybox--': # don't need graybox
-                            grayboxids.append(t)
-                            varids.remove(t)
-                        if r.type == '--blackbox--': # don't need blackbox
-                            varids.remove(t)
-                        if r.type == 'normal': # add the variable assignment
-                            #print(r.line)
-                            line_list.append(r.line)
-                            varids.remove(t)
-                        if r.type == 'virtual': # don't need return value
-                            varids.remove(t)
-                        if r.type == 'param': # don't need param value
-                            varids.remove(t)
-                        if r.type == 'arg': # deal with arg later
-                            argids.append(t)
-                            varids.remove(t)
-                        if r.name == 'file.write': # file write is special case here
-                            ### since file.write depends on the previous one, we might add some unrelevant file.write here
-                            filewriteids.append(t)
+            loop_list = []
+            cond_list = []
+            for v in varids:
+                for r in result_variabledependency:
+                    if r.source_id == v:
+                        if r.type == "loop":
+                            loop_list.append(r.target_id)
+                            if r.target_id not in varids:
+                                varids.append(r.target_id)
+                        if r.type == "conditional":
+                            cond_list.append(r.target_id)
+                            if r.target_id not in varids:
+                                varids.append(r.target_id)
+            debug_print("var ID (with loop and cond)", varids, debug_mode)
+            debug_print("loop list", loop_list, debug_mode)
+            debug_print("cond list", cond_list, debug_mode)
 
+            graybox_varid = []
+            for v in varids:
+                if result_variable[v-1].type == '--graybox--':
+                    graybox_varid.append(v)
+            debug_print("graybox variable list", graybox_varid, debug_mode)
 
-            # XXX: it will include redundant calls without graybox 
-            # XXX: we should check each varid there
-            # XXX: if varids doesn't include the closest graybox in front of it -> invalid function call
-            ### here, we will deal with file.write
-            # print(list(set(varids)))
-            # print(filewriteids)
-            # print(grayboxids)
-            useless_ids = []
-            for f in filewriteids:
-                res = get_closest_graybox(f, result_variable)
-                if res in grayboxids:
-                    continue
-                else: # this means we add some unrelevant file.write, we need to remove those
-                    useless_ids.append(f)
-                    varids.remove(f)
+            # related functions' parameters
+            func_params = []
+            for v in graybox_varid:
+                for r in result_variabledependency:
+                    if r.source_id == v:
+                        if r.type == "parameter":
+                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params and r.target_id not in varids:
+                                func_params.append(r.target_id)
+            debug_print("var ID list (graybox updated)", varids, debug_mode)
+            debug_print("function param list", func_params, debug_mode)
 
-            ### the only thing left in varids is function calls
-            varids = list(set(varids))
-            #print(argids)
-            #print(varids)
+            related_funcdef_list = []
+            varids_remove = []
+            for v in varids:
+                if result_variable[v-1].activation_id != 0: # and result_variable[v-1].activation_id != 1:
+                    ### this means it belongs to some functions (or loop or cond or even global functions), we will include their definitions
+                    current_line = result_variable[v-1].line
+                    belong_funcdef = check_def_id(current_line, result_functiondef)
+                    if belong_funcdef != 0:
+                        # include all the related function definition list.
+                        if belong_funcdef not in related_funcdef_list:
+                            related_funcdef_list.append(belong_funcdef)
+                        # remove those called by some function, we will include all the function definition
+                        if result_variable[v-1].activation_id != 1:
+                            varids_remove.append(v)
+                        # remove those function definition, we will include them 
+                        if result_variable[v-1].type == 'function definition':
+                            varids_remove.append(v)
 
-            ### deal with arg - might be 'file' in 'file.write', we need to include the file.open as well
-            argids = list(set(argids))
-            argnames = []
-            for r in result_variable:
-                for a in argids:
-                    if r.id == a:
-                        argnames.append(r.name)
-            #print(argnames)
-            arg2normalids = []
-            for r in result_variable:
-                for a in argnames:
-                    if r.name == a:
-                        if r.type == 'normal':
-                            arg2normalids.append(r.id)
-            #print(arg2normalids)
+            debug_print("varid remove list", varids_remove, debug_mode)
+            debug_print("related function definition list", related_funcdef_list, debug_mode)
 
-            for r in result_variable:
-                for a in arg2normalids:
-                    if r.id == a:
-                        line_list.append(r.line)
-            #print(line_list)
+            for i in varids_remove:
+                varids.remove(i)
+            for i in graybox_varid:
+                varids.remove(i)
+            debug_print("var ID list (updated)", varids, debug_mode)
 
-            ### deal with function calls
-            ### get the func name that relate to the given function
-            var_name = []
-            var_line = []
-            var_id = []
-            for r in result_variable:
-                for t in varids:
-                    if r.id == t:
-                        var_name.append(r.name)
-                        var_id.append(r.activation_id)
-                        var_line.append(r.line)
-            #print(var_name)
-            #print(var_line)
-            var_id = list(set(var_id))
-            var_id.sort()
-            #print(var_id)
+            varids_remove = []
+            related_func_calls = []
+            normal_varid = []
+            for v in varids:
+                if result_variable[v-1].type == 'call':
+                    related_func_calls.append(v)
+                    varids_remove.append(v)
+                if result_variable[v-1].type == 'normal':
+                    normal_varid.append(v)
+                    varids_remove.append(v)
+            for i in varids_remove:
+                varids.remove(i)
 
-            ### for all related func, get their upstream (if not global)
-            var_upstream_func = []
-            var_upstream_funcname = []
-            for i in var_id:
-                for r in result_functionactivation:
-                    if r.id == i and r.caller_id != 1:
-                        var_upstream_func.append(r.caller_id)
-            for i in var_upstream_func:
-                for r in result_functionactivation:
-                    if r.id == i:
-                        var_upstream_funcname.append(r.name)
-            # print(var_upstream_funcname)
-            # print(upstream_funcname)
+            debug_print("related funcion activation list", related_func_calls, debug_mode)
+            debug_print("related normal variable list", normal_varid, debug_mode)
+            # it should be nothing left in varids
+            debug_print("var ID list (final)", varids, debug_mode)
 
+            # double check whether we include all active functions' definition
+            for v in related_func_calls:
+                for r in result_variabledependency:
+                    if r.source_id == v and r.type == 'direct':
+                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        current_line = result_variable[r.target_id-1].line
+                        belong_funcdef = check_def_id(current_line, result_functiondef)
+                        if belong_funcdef != 0:
+                            # include all the related function definition list.
+                            if belong_funcdef not in related_funcdef_list:
+                                related_funcdef_list.append(belong_funcdef)
+            debug_print("related function definition list (updated)", related_funcdef_list, debug_mode)
 
-            ### we might need to add upstream functions (if given function is not global)
-            var_name_upstream = var_upstream_funcname
-            var_name_all = var_name + var_name_upstream
-            var_name_upstream = list(set(var_name_upstream))
-            for r in result_variable:
-                if r.name in var_name_upstream:
-                    var_line.append(r.line)
-            # print(var_name_upstream)
-            #print(var_line)
+            line_list = []
+            # add function definition
+            for i in related_funcdef_list:
+                tmp = result_functiondef[i-1]
+                for line in range(tmp.first_line, tmp.last_line + 1):
+                    if line not in line_list:
+                        line_list.append(line)
 
-            ### collect global function activation id - need to add the param for it (they might use some edited variable)
-            global_func = []
-            ### add the func execute line and definitions
-            for r in result_functionactivation:
-                for v in var_name_all:
-                    if r.name == v:
-                        if r.line in var_line:
-                            line_list.append(r.line)
-                            if r.caller_id == 1:
-                                ### we need to deal with its params later
-                                global_func.append(r.id)
-            for r in result_functiondef:
-                for v in var_name_all:
-                    if r.name == v:
-                        for line in range(r.first_line, r.last_line+1):
-                            line_list.append(line)
-            global_func = list(set(global_func))
-            global_func.sort()
-            #print(line_list)
+            # add function activation
+            for i in related_func_calls:
+                func_call_line = result_variable[i-1].line
+                if func_call_line not in line_list:
+                    line_list.append(func_call_line)
 
-            ### get the previous param id for global function
-            paramids = []
-            paramvalues = []
-            for r in result_variable:
-                for g in global_func:
-                    if r.activation_id == g:
-                        if r.type == 'param':
-                            paramids.append(r.id)
-                            paramvalues.append(r.value)
-            paramids = list(set(paramids))
-            paramids.sort()
-            #print (paramids)
-            #print (paramvalues)
+            # add normal variable
+            for i in normal_varid:
+                var_line = result_variable[i-1].line
+                if var_line not in line_list:
+                    line_list.append(var_line)
 
-            ### trace the param dependency
-            param2directids = []
-            for r in result_variabledependency:
-                for p in paramids:
-                    if r.source_id == p:
-                        param2directids.append(r.target_id)
-            #print(param2directids)
-
-            ### remove those param are modified in ProvScript
-            ### first, we collect those param assignment lines and compare them with line_list, if they already exist (means that it will modify inside ProvScript), we don't need to do assignment for them
-            param2directlines = []
-            for p in param2directids:
-                for r in result_variable:
-                    if r.id == p:
-                        # we will use it later after we collect line_list
-                        param2directlines.append(r.line)
-
-
-            ### temporarily get the return values for global function 
+            param_name = []
+            param_value = []
+            for i in func_params:
+                tmp = result_variable[i-1]
+                param_name.append(tmp.name)
+                param_value.append(tmp.value)
 
             ### function param setup
-            update_file.write("\n# This is the param setup part\n")
-            update_file.write("# We are going to setup the function params\n")
-            update_file.write("# The following params will be assigned in your original script, but the values are not relevant to your update\n")
-
-            ### get the useless param ids (modified in ProvScript)
-            useless_param2directids = []
-            for i in range(0,len(param2directids)):
-                if param2directlines[i] in line_list:
-                    useless_param2directids.append(param2directids[i])
-
-            for u in useless_param2directids:
-                param2directids.remove(u)
-            # print(param2directids)
-
-            ### get the corresponding names
-            param2directnames = []
-            param2directvalues = []
-            for r in result_variable:
-                for p in param2directids:
-                    if r.id == p:
-                        param2directnames.append(r.name)
-                        param2directvalues.append(r.value)
-
+            update_file.write("\n# This is the param setup part - We are going to setup the function params - The following params will be assigned in your original script, but the values are not relevant to your update\n")
             ### write param setup to file
-            for i in range(0,len(param2directnames)):
+            for i in range(0,len(func_params)):
                 update_file.write(
                     "{} = {}\n".format(
-                        param2directnames[i],
-                        param2directvalues[i]
+                        param_name[i],
+                        param_value[i]
                         )
                     )
 
