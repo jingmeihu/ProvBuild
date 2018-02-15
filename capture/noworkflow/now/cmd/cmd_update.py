@@ -66,7 +66,7 @@ def check_related_call(name, result_variable):
     ret = []
     name_length = len(name)
     for r in result_variable:
-        if r.name[0:name_length] == name[0:name_length] and r.type == 'call' and r.activation_id == 1:
+        if r.name[0:name_length] == name[0:name_length] and r.type == 'call': # and r.activation_id == 1:
             ret.append(r.id)
     return ret
 
