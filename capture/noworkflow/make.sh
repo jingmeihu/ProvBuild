@@ -10,12 +10,12 @@ case "$1" in
 	uf)
 		echo "The trial id is 1 ..."
 		echo "The function name is $2 ..."
-		python __init__.py update -t 1 -fn "$2" --debug 1
+		python __init__.py update -t 1 -fn "$2" --debug 0
 		;;
 	uv)
 		echo "The trial id is 1 ..."
 		echo "The variable name is $2 ..."
-		python __init__.py update -t 1 -vn "$2" --debug 1
+		python __init__.py update -t 1 -vn "$2" --debug 0
 		;;
 	d)
 		echo "Compile ProvScript.py ..."
