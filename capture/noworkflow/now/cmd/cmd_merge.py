@@ -97,16 +97,16 @@ class Merge(Command):
         # provscript_trial_id = previous_trial.get_last_runupdate_id()
         # provscript_trial = Trial(trial_ref=provscript_trial_id)
 
-        print ('You are going to merge')
-        print ('\tTrial {} (original script: {})'.format(previous_trial.id, previous_trial.script)) 
+        # print ('You are going to merge')
+        # print ('\tTrial {} (original script: {})'.format(previous_trial.id, previous_trial.script)) 
         # print ('\tTrProvScript: {})'.format(provscript_trial.id, provscript_trial.script))
-        print ('\tProvScript: ProvScript.py)')
+        # print ('\tProvScript: ProvScript.py)')
         # print ('The origin script name is: {}'.format(previous_trial.script))
         # print ('The update script name is: {}'.format(provscript_trial.script))
         origin_file = open(previous_trial.script, "r")
         update_file = open("ProvScript.py", "r")
         new_file_name = 'new-'+previous_trial.script
-        print ('We create a new and complete version for you: {}'.format(new_file_name))
+        # print ('We create a new and complete version for you: {}'.format(new_file_name))
         new_file = open(new_file_name, "w")
         ### line_list stores all the changed line of previous script
         previous_lines = []

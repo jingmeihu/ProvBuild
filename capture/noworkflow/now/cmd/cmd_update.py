@@ -25,7 +25,7 @@ from .command import Command
 
 import linecache
 
-def debug_print(string, content, arg=True):
+def debug_print(string, content, arg=False):
     if arg == True:
         print('{} is {}'.format(string, content))
     return
@@ -119,11 +119,11 @@ class Update(Command):
         debug_mode = args.debug
 
         # print ('Before we start, let me be clear:')
-        print ('You are dealing with Trial {} '.format(args.trial))
-        if args.funcname is not None:
-            print ('You are dealing with Function {} '.format(args.funcname))
-        else:
-            print ('You are dealing with Variable {} '.format(args.varname))
+        # print ('You are dealing with Trial {} '.format(args.trial))
+        # if args.funcname is not None:
+        #     print ('You are dealing with Function {} '.format(args.funcname))
+        # else:
+        #     print ('You are dealing with Variable {} '.format(args.varname))
 
         # for trial table
         result_trial = trial.pull_content(trial.id)
@@ -515,9 +515,9 @@ class Update(Command):
             for v in varid_copy:
                 for r in result_variabledependency:
                     if r.source_id == v and r.target_id not in varid_copy:
-                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         if r.type == 'parameter' and result_variable[r.source_id-1].activation_id > 1 and result_variable[r.target_id-1].type != 'normal':
-                            print("PASS: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                            # print("PASS: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                             pass
                         elif result_variable[r.target_id-1].type == 'function definition':
                             pass
@@ -539,7 +539,7 @@ class Update(Command):
             for v in varid_copy:
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in varid_copy:
-                        print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
+                        # print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
                         varid_copy.append(r.source_id)
                         if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
                             same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
@@ -796,7 +796,7 @@ class Update(Command):
 
         update_file.close()
 
-        print ('Trial {} has been created'.format(metascript.trial_id))
-        print ("Now, we generate a ProvScript for you: ProvScript.py")
+        # print ('Trial {} has been created'.format(metascript.trial_id))
+        # print ("Now, we generate a ProvScript for you: ProvScript.py")
 
 
