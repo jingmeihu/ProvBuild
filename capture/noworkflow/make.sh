@@ -19,7 +19,8 @@ case "$1" in
 		;;
 	d)
 		echo "Compile ProvScript.py ..."
-		python __init__.py runupdate ProvScript.py
+		# python __init__.py runupdate ProvScript.py
+		python ProvScript.py
 		;;
 	m)
 		echo "The trial id is 1 ..."
