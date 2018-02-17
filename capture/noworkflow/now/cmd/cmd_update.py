@@ -70,6 +70,17 @@ def check_related_call(name, result_variable):
             ret.append(r.id)
     return ret
 
+def check_related_call_general(name, line, result_variable):
+    ret = []
+    name_length = len(name)
+    for r in result_variable:
+        if r.type == 'call':
+            if len(r.name) <= name_length:
+                name_length = len(r.name)
+            if r.name[0:name_length] == name[0:name_length] and r.type == 'call' and r.line == line:
+                ret.append(r.id)
+    return ret
+
 class Update(Command):
     """ Create ProvScript based on the user input """
 
@@ -208,10 +219,19 @@ class Update(Command):
 
         ### first, we will deal with the function name input
         if args.funcname is not None:
-            # try to find the function name when it first appears
+            # try to find the function name when it appears
             funcid = []
             funcid_copy = []
-            funcid = check_related_call(given_funcname, result_variable)
+            given_funcname_list = []
+            given_funcname_list.append(given_funcname)
+            for i in result_functionactivation:
+                if i.name in given_funcname_list and i.caller_id != 1:
+                    caller_name = result_functionactivation[i.caller_id-1].name
+                    if caller_name not in given_funcname_list:
+                        given_funcname_list.append(caller_name)
+            debug_print("Given function name list (including global functions)", given_funcname_list)
+            for i in given_funcname_list:
+                funcid += check_related_call(i, result_variable)
 
             # make a copy
             for i in funcid:
@@ -223,14 +243,21 @@ class Update(Command):
             for f in funcid_copy:
                 for r in result_variabledependency:
                     if r.source_id == f and r.target_id not in funcid_copy:
-                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
-                        if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
-                            if r.target_id not in funcid_end:
-                                funcid_end.append(r.target_id)
+                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        if r.type == 'parameter' and result_variable[r.source_id-1].activation_id > 1:
+                            pass
                         elif result_variable[r.target_id-1].type == 'function definition':
                             pass
+                        elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
+                            if r.target_id not in funcid_end:
+                                funcid_end.append(r.target_id)
                         else:
                             funcid_copy.append(r.target_id)
+                            if result_variable[r.target_id-1].type == 'call' and result_variable[r.target_id-1].activation_id == 1:
+                                same_call = check_related_call_general(result_variable[r.target_id-1].name, result_variable[r.target_id-1].line, result_variable)
+                                for i in same_call:
+                                    if i not in funcid_copy:
+                                        funcid_copy.append(i)
             debug_print("function ID sub list(updated target_id)", funcid_copy)
             debug_print("function ID end list (updated target_id)", funcid_end)
             # funcid_copy += funcid_end
@@ -239,8 +266,13 @@ class Update(Command):
             for v in funcid_copy:
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in funcid_copy:
-                        print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
+                        # print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
                         funcid_copy.append(r.source_id)
+                        if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
+                            same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
+                            for i in same_call:
+                                if i not in funcid_copy:
+                                    funcid_copy.append(i)
             debug_print("function ID list (updated source_id)", funcid_copy)
             # for i in funcid_end:
             #     funcid_copy.remove(i)
@@ -312,13 +344,16 @@ class Update(Command):
                         elif i > j and i not in func_params_remove: 
                             func_params_remove.append(i)
 
+            # remove those 'buildin' variables
+            for i in func_params:
+                if result_variable[i-1].type != 'normal':
+                    func_params_remove.append(i)
+
             for i in func_params_remove:
                 func_params.remove(i) 
                 if i not in funcids:
                     funcids.append(i)
             debug_print("function param list (updated)", func_params, debug_mode)
-
-
 
             related_funcdef_list = []
             funcids_remove = []
@@ -363,13 +398,60 @@ class Update(Command):
             debug_print("related funcion activation list", related_func_calls, debug_mode)
             debug_print("related normal variable list", normal_funcid, debug_mode)
             # it should be nothing left in varids
-            debug_print("var ID list (final) (should be empty)", funcids, debug_mode)
+            debug_print("function ID list (final) (should be empty)", funcids, debug_mode)
+
+            related_func_calls_add = []
+            for v in related_func_calls:
+                same_call = check_related_call_general(result_variable[v-1].name, result_variable[v-1].line, result_variable)
+                related_func_calls_add += same_call
+            for i in related_func_calls_add:
+                if i not in related_func_calls:
+                    related_func_calls.append(i)
+            debug_print("related funcion activation list (update same_call)", related_func_calls, debug_mode)
+
+            related_func_calls_name = []
+            related_func_calls_line = []
+            for i in related_func_calls:
+                related_func_calls_name.append(result_variable[i-1].name)
+                related_func_calls_line.append(result_variable[i-1].line)
+            debug_print("related funcion activation name list", related_func_calls_name, debug_mode)
+            debug_print("related funcion activation line list", related_func_calls_line, debug_mode)
+
+            related_func_calls_id = []
+            for i in range(0, len(related_func_calls_name)):
+                for j in result_functionactivation:
+                    if j.name == related_func_calls_name[i] and j.line == related_func_calls_line[i]:
+                        related_func_calls_id.append(j.id)
+            debug_print("related funcion activation ID list", related_func_calls_id, debug_mode)
+
+            # collect the second level function calls
+            for i in related_func_calls_id:
+                for r in result_functionactivation:
+                    if (r.caller_id == i) and r.id not in related_func_calls_id:
+                        related_func_calls_id.append(r.id)
+            debug_print("related funcion activation ID list (updated)", related_func_calls_id, debug_mode)
+
+            for i in related_func_calls_id:
+                for r in result_variable:
+                    if r.name == result_functionactivation[i-1].name and r.line == result_functionactivation[i-1].line and r.activation_id == result_functionactivation[i-1].caller_id:
+                        if r.id not in related_func_calls:
+                            related_func_calls.append(r.id)
+            debug_print("related funcion activation list (update second level calls)", related_func_calls, debug_mode)
+
+            related_func_calls_add_2 = []
+            for v in related_func_calls:
+                same_call = check_related_call_general(result_variable[v-1].name, result_variable[v-1].line, result_variable)
+                related_func_calls_add_2 += same_call
+            for i in related_func_calls_add_2:
+                if i not in related_func_calls:
+                    related_func_calls.append(i)
+            debug_print("related funcion activation list (update same_call)", related_func_calls, debug_mode)
 
             # double check whether we include all active functions' definition
             for v in related_func_calls:
                 for r in result_variabledependency:
                     if r.source_id == v and r.type == 'direct':
-                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         current_line = result_variable[r.target_id-1].line
                         belong_funcdef = check_def_id(current_line, result_functiondef)
                         if belong_funcdef != 0:
@@ -434,16 +516,24 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v and r.target_id not in varid_copy:
                         print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
-                        if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
-                            if r.target_id not in varid_end:
-                                varid_end.append(r.target_id)
+                        if r.type == 'parameter' and result_variable[r.source_id-1].activation_id > 1 and result_variable[r.target_id-1].type != 'normal':
+                            print("PASS: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                            pass
                         elif result_variable[r.target_id-1].type == 'function definition':
                             pass
+                        elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
+                            if r.target_id not in varid_end:
+                                varid_end.append(r.target_id)
                         else:
                             varid_copy.append(r.target_id)
+                            if result_variable[r.target_id-1].type == 'call' and result_variable[r.target_id-1].activation_id == 1:
+                                same_call = check_related_call_general(result_variable[r.target_id-1].name, result_variable[r.target_id-1].line, result_variable)
+                                for i in same_call:
+                                    if i not in varid_copy:
+                                        varid_copy.append(i)
             debug_print("variable ID sub list(updated target_id)", varid_copy)
             debug_print("variable ID end list (updated target_id)", varid_end)
-            varid_copy += varid_end
+            # varid_copy += varid_end
             debug_print("variable ID list (updated target_id)", varid_copy)
 
             for v in varid_copy:
@@ -451,9 +541,14 @@ class Update(Command):
                     if r.target_id == v and r.source_id not in varid_copy:
                         print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
                         varid_copy.append(r.source_id)
+                        if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
+                            same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
+                            for i in same_call:
+                                if i not in varid_copy:
+                                    varid_copy.append(i)
             debug_print("variable ID list (updated source_id)", varid_copy)
-            for i in varid_end:
-                varid_copy.remove(i)
+            # for i in varid_end:
+            #     varid_copy.remove(i)
             varids = varid_copy
 
             loop_list = []
@@ -489,6 +584,47 @@ class Update(Command):
                                 func_params.append(r.target_id)
             debug_print("var ID list (graybox updated)", varids, debug_mode)
             debug_print("function param list", func_params, debug_mode)
+
+            func_params_remove = []
+            func_params_add = []
+            func_params_name = []
+            for i in func_params:
+                func_params_name.append(result_variable[i-1].name)
+
+            for i in varid_end:
+                if result_variable[i-1].name not in func_params_name:
+                    func_params_add.append(i)
+            debug_print("function param add list", func_params_add, debug_mode)
+
+            for i in varid_end:
+                for j in func_params:
+                    if result_variable[i-1].name == result_variable[j-1].name and i < j:
+                        func_params_remove.append(j)
+                        if i not in func_params:
+                            func_params_add.append(i)
+            debug_print("function param add list (updated)", func_params_add, debug_mode)
+
+            func_params += func_params_add
+            debug_print("function param list (updated)", func_params, debug_mode)
+
+            for i in func_params:
+                for j in func_params:
+                    # variable replication
+                    if i != j and result_variable[i-1].name == result_variable[j-1].name:
+                        if i < j and j not in func_params_remove:
+                            func_params_remove.append(j)
+                        elif i > j and i not in func_params_remove: 
+                            func_params_remove.append(i)
+            # remove those 'buildin' variables
+            for i in func_params:
+                if result_variable[i-1].type != 'normal':
+                    func_params_remove.append(i)
+
+            for i in func_params_remove:
+                func_params.remove(i) 
+                if i not in varids:
+                    varids.append(i)
+            debug_print("function param list (updated)", func_params, debug_mode)
 
             related_funcdef_list = []
             varids_remove = []
@@ -535,11 +671,59 @@ class Update(Command):
             # it should be nothing left in varids
             debug_print("var ID list (final)", varids, debug_mode)
 
+            related_func_calls_add = []
+            for v in related_func_calls:
+                same_call = check_related_call_general(result_variable[v-1].name, result_variable[v-1].line, result_variable)
+                related_func_calls_add += same_call
+            for i in related_func_calls_add:
+                if i not in related_func_calls:
+                    related_func_calls.append(i)
+            debug_print("related funcion activation list (update same_call)", related_func_calls, debug_mode)
+
+            related_func_calls_name = []
+            related_func_calls_line = []
+            for i in related_func_calls:
+                related_func_calls_name.append(result_variable[i-1].name)
+                related_func_calls_line.append(result_variable[i-1].line)
+            debug_print("related funcion activation name list", related_func_calls_name, debug_mode)
+            debug_print("related funcion activation line list", related_func_calls_line, debug_mode)
+
+            related_func_calls_id = []
+            for i in range(0, len(related_func_calls_name)):
+                for j in result_functionactivation:
+                    if j.name == related_func_calls_name[i] and j.line == related_func_calls_line[i]:
+                        related_func_calls_id.append(j.id)
+            debug_print("related funcion activation ID list", related_func_calls_id, debug_mode)
+
+            # collect the second level function calls
+            for i in related_func_calls_id:
+                for r in result_functionactivation:
+                    if (r.caller_id == i) and r.id not in related_func_calls_id:
+                        related_func_calls_id.append(r.id)
+            debug_print("related funcion activation ID list (updated)", related_func_calls_id, debug_mode)
+
+            for i in related_func_calls_id:
+                for r in result_variable:
+                    if r.name == result_functionactivation[i-1].name and r.line == result_functionactivation[i-1].line and r.activation_id == result_functionactivation[i-1].caller_id:
+                        if r.id not in related_func_calls:
+                            related_func_calls.append(r.id)
+            debug_print("related funcion activation list (update second level calls)", related_func_calls, debug_mode)
+
+            related_func_calls_add_2 = []
+            for v in related_func_calls:
+                same_call = check_related_call_general(result_variable[v-1].name, result_variable[v-1].line, result_variable)
+                related_func_calls_add_2 += same_call
+            for i in related_func_calls_add_2:
+                if i not in related_func_calls:
+                    related_func_calls.append(i)
+            debug_print("related funcion activation list (update same_call)", related_func_calls, debug_mode)
+
+
             # double check whether we include all active functions' definition
             for v in related_func_calls:
                 for r in result_variabledependency:
                     if r.source_id == v and r.type == 'direct':
-                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         current_line = result_variable[r.target_id-1].line
                         belong_funcdef = check_def_id(current_line, result_functiondef)
                         if belong_funcdef != 0:
