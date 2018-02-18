@@ -81,6 +81,17 @@ def check_related_call_general(name, line, result_variable):
                 ret.append(r.id)
     return ret
 
+def remove_loop_cond_funcdef(funclist):
+    func_list_remove = []
+    for i in funclist:
+        if 'LOOP_STMT' in i:
+            func_list_remove.append(i)
+        elif 'CONDITIONAL_STMT' in i:
+            func_list_remove.append(i)
+    for i in func_list_remove:
+        funclist.remove(i)
+    return funclist
+
 class Update(Command):
     """ Create ProvScript based on the user input """
 
@@ -203,8 +214,9 @@ class Update(Command):
         ### function definition bound
         update_file.write("# This is the function declaration part\n")
         update_file.write("# - Your previous script contains the following function definitions:\n")
+        func_defs_update = remove_loop_cond_funcdef(func_defs)
         func_defs_str = ""
-        for f in func_defs:
+        for f in func_defs_update:
             func_defs_str = func_defs_str + '###' + f + '\n'
         update_file.write(func_defs_str)
 
