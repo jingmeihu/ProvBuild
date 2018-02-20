@@ -154,6 +154,11 @@ class Update(Command):
         func_defs = []
         for r in result_functiondef:
             func_defs.append(r.name)
+
+        if args.funcname is not None:
+            if args.funcname not in func_defs:
+                print ("given function doesn't exist!")
+                return
         #print(func_defs)
 
         # for variable
@@ -169,6 +174,10 @@ class Update(Command):
             if r.activation_id == 1 and r.type == 'normal':
                 var_defs.append(r.name)
         var_defs = list(set(var_defs))
+        if args.varname is not None:
+            if args.varname not in var_defs:
+                print ("given variable doesn't exist!")
+                return
         #print(var_defs)
 
         # for variable_dependency
