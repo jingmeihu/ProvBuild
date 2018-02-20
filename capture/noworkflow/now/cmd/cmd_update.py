@@ -250,7 +250,7 @@ class Update(Command):
                     caller_name = result_functionactivation[i.caller_id-1].name
                     if caller_name not in given_funcname_list:
                         given_funcname_list.append(caller_name)
-            debug_print("Given function name list (including global functions)", given_funcname_list, debug_more)
+            debug_print("Given function name list (including global functions)", given_funcname_list, debug_mode)
             for i in given_funcname_list:
                 funcid += check_related_call(i, result_variable)
 
@@ -258,7 +258,7 @@ class Update(Command):
             for i in funcid:
                 funcid_copy.append(i)
 
-            debug_print("function ID", funcid, debug_more)
+            debug_print("function ID", funcid, debug_mode)
 
             funcid_end = []
             for f in funcid_copy:
@@ -279,10 +279,10 @@ class Update(Command):
                                 for i in same_call:
                                     if i not in funcid_copy:
                                         funcid_copy.append(i)
-            debug_print("function ID sub list(updated target_id)", funcid_copy, debug_more)
-            debug_print("function ID end list (updated target_id)", funcid_end, debug_more)
+            debug_print("function ID sub list(updated target_id)", funcid_copy, debug_mode)
+            debug_print("function ID end list (updated target_id)", funcid_end, debug_mode)
             # funcid_copy += funcid_end
-            debug_print("function ID list (updated target_id)", funcid_copy, debug_more)
+            debug_print("function ID list (updated target_id)", funcid_copy, debug_mode)
 
             for v in funcid_copy:
                 for r in result_variabledependency:
@@ -294,7 +294,7 @@ class Update(Command):
                             for i in same_call:
                                 if i not in funcid_copy:
                                     funcid_copy.append(i)
-            debug_print("function ID list (updated source_id)", funcid_copy, debug_more)
+            debug_print("function ID list (updated source_id)", funcid_copy, debug_mode)
             # for i in funcid_end:
             #     funcid_copy.remove(i)
             funcids = funcid_copy
