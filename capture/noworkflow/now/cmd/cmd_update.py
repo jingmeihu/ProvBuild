@@ -250,7 +250,7 @@ class Update(Command):
                     caller_name = result_functionactivation[i.caller_id-1].name
                     if caller_name not in given_funcname_list:
                         given_funcname_list.append(caller_name)
-            debug_print("Given function name list (including global functions)", given_funcname_list)
+            debug_print("Given function name list (including global functions)", given_funcname_list, debug_more)
             for i in given_funcname_list:
                 funcid += check_related_call(i, result_variable)
 
@@ -258,13 +258,13 @@ class Update(Command):
             for i in funcid:
                 funcid_copy.append(i)
 
-            debug_print("function ID", funcid)
+            debug_print("function ID", funcid, debug_more)
 
             funcid_end = []
             for f in funcid_copy:
                 for r in result_variabledependency:
                     if r.source_id == f and r.target_id not in funcid_copy:
-                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         if r.type == 'parameter' and result_variable[r.source_id-1].activation_id > 1:
                             pass
                         elif result_variable[r.target_id-1].type == 'function definition':
@@ -279,22 +279,22 @@ class Update(Command):
                                 for i in same_call:
                                     if i not in funcid_copy:
                                         funcid_copy.append(i)
-            debug_print("function ID sub list(updated target_id)", funcid_copy)
-            debug_print("function ID end list (updated target_id)", funcid_end)
+            debug_print("function ID sub list(updated target_id)", funcid_copy, debug_more)
+            debug_print("function ID end list (updated target_id)", funcid_end, debug_more)
             # funcid_copy += funcid_end
-            debug_print("function ID list (updated target_id)", funcid_copy)
+            debug_print("function ID list (updated target_id)", funcid_copy, debug_more)
 
             for v in funcid_copy:
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in funcid_copy:
-                        # print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
+                        print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
                         funcid_copy.append(r.source_id)
                         if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
                             same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
                             for i in same_call:
                                 if i not in funcid_copy:
                                     funcid_copy.append(i)
-            debug_print("function ID list (updated source_id)", funcid_copy)
+            debug_print("function ID list (updated source_id)", funcid_copy, debug_more)
             # for i in funcid_end:
             #     funcid_copy.remove(i)
             funcids = funcid_copy
@@ -530,15 +530,15 @@ class Update(Command):
                 if r.name == given_varname and r.activation_id == 1:
                     varid.append(r.id)
                     varid_copy.append(r.id)
-            debug_print("variable ID", varid)
+            debug_print("variable ID", varid, debug_mode)
 
             varid_end = []
             for v in varid_copy:
                 for r in result_variabledependency:
                     if r.source_id == v and r.target_id not in varid_copy:
-                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                        print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         if r.type == 'parameter' and result_variable[r.source_id-1].activation_id > 1 and result_variable[r.target_id-1].type != 'normal':
-                            # print("PASS: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
+                            print("PASS: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                             pass
                         elif result_variable[r.target_id-1].type == 'function definition':
                             pass
@@ -552,22 +552,22 @@ class Update(Command):
                                 for i in same_call:
                                     if i not in varid_copy:
                                         varid_copy.append(i)
-            debug_print("variable ID sub list(updated target_id)", varid_copy)
-            debug_print("variable ID end list (updated target_id)", varid_end)
+            debug_print("variable ID sub list(updated target_id)", varid_copy, debug_mode)
+            debug_print("variable ID end list (updated target_id)", varid_end, debug_mode)
             # varid_copy += varid_end
-            debug_print("variable ID list (updated target_id)", varid_copy)
+            debug_print("variable ID list (updated target_id)", varid_copy, debug_mode)
 
             for v in varid_copy:
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in varid_copy:
-                        # print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
+                        print("{} -> {}, type = {}".format(r.target_id, r.source_id, r.type))
                         varid_copy.append(r.source_id)
                         if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
                             same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
                             for i in same_call:
                                 if i not in varid_copy:
                                     varid_copy.append(i)
-            debug_print("variable ID list (updated source_id)", varid_copy)
+            debug_print("variable ID list (updated source_id)", varid_copy, debug_mode)
             # for i in varid_end:
             #     varid_copy.remove(i)
             varids = varid_copy
