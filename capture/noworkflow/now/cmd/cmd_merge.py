@@ -114,21 +114,27 @@ class Merge(Command):
         update_lines = []
 
         i = 0
-        flag = 0
+        before_script_flag = 0
+        useless_thing_flag = 0
         for line in update_file:
             #print(line[0:24])
             i += 1
-            if line[0:24] == '# This is the ProvScript':
+            if '# This is the ProvScript part' in line:
                 #print(line)
-                flag = 1
+                before_script_flag = 1
                 continue
-            if flag == 1:
+            if before_script_flag == 1:
                 linenumber = check_line_number(line)
                 if linenumber != 0:
                     previous_lines.append(linenumber)
                     provscript_lines.append(i)
                 else: 
-                    update_lines.append(i)
+                    if '# The previous script does something here, but we ignore them here' in line:
+                        useless_thing_flag = 1
+                    elif '# Please check the previous script' in line:
+                        useless_thing_flag = 0
+                    elif useless_thing_flag == 0:
+                        update_lines.append(i)
         # print(previous_lines)
         # print(provscript_lines)
         # print(update_lines)
@@ -143,7 +149,6 @@ class Merge(Command):
                 if(update_lines[cnt] < provscript_lines[idx]):
                     need_update[idx] = need_update[idx] + 1
                     flag = 1
-        #print(need_update)
 
         j = 0
         for line in origin_file:
