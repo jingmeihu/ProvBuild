@@ -5,6 +5,8 @@ import time
 import string
 from flask import Flask, request, redirect, url_for, render_template,session
 from werkzeug.utils import secure_filename
+import threading
+import webbrowser
 
 UPLOAD_FOLDER = '.'
 ALLOWED_EXTENSIONS = set(['py'])
@@ -17,6 +19,11 @@ def stripComments(code):
     #code = str(code) code code
     #return re.sub(r'(?m) *#.*\n?', '\n', code)
     return code
+def cleanhtml(code):
+	code = str(code)
+	cleanrule = re.compile('<.*?>')
+	cleantext = re.sub(cleanrule, '', code)
+	return cleantext
 
 @app.route('/normal', methods = ['GET', 'POST'])
 def normal():
@@ -24,93 +31,134 @@ def normal():
 		user_file = request.files['file']
 		user_file.save(secure_filename(user_file.filename))
 
-		file = open("session.txt", "w")
-		file.write("session:" + user_file.filename)
+		user_name = request.form['username']
 
+		file = open("session.txt", "w")
+		file.write(user_name + ":" + user_file.filename + ":" + "NORMAL")
+
+		# initialize the first run, recall the time
+		print 'run ' + user_file.filename
 		timefile = open("time.txt", "a")
 		timefile.write(user_file.filename + "\n")
-
-		timefile.write("NORMAL start run:" + str(time.time()) + "\n")
-		print 'python ' + user_file.filename
+		timefile.write("NORMAL start first run: \t" + str(time.time()) + "\n")
 		status, output = commands.getstatusoutput('python ' + user_file.filename)
-		timefile.write("NORMAL end run:" + str(time.time()) + "\n")
+		timefile.write("NORMAL end first run and we start here: \t" + str(time.time()) + "\n")
 
 		return render_template('normal.html', 
 		 					user_file=user_file.filename, 
-		 					message="completed run", 
+		 					message="Initial Done", 
 		 					content=open(user_file.filename, 'r').read(), 
 		 					status=status, 
 		 					result=open("result.txt", "r").read(),
 		 					output=output)
+
+@app.route("/runnormal", methods=['POST'])
+def runnormal():
+	file = open("session.txt", "r") 
+	info = file.readline().split(":")
+	username = info[0]
+	filename = info[1] 
+
+	f= open(filename, 'w')
+	code = request.form['script'].replace("&gt;", ">").replace("&lt;", "<").replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
+	finalcode = cleanhtml(code)
+	f.write(finalcode)
+	f.close()
+
+	# execute the script
+	print 'run '	+ filename
+	timefile = open("time.txt", "a")
+	timefile.write("NORMAL start run: \t" + str(time.time())  + "\n")
+	status, output = commands.getstatusoutput('python '	+ filename)
+	timefile.write("NORMAL end run: \t" + str(time.time())  + "\n")
+
+	return render_template('normal.html', 
+							user_file=filename, 
+							message="Execute Done", 
+							content=open(filename, 'r').read(), 
+							status=status, 
+							result=open("result.txt", "r").read(),
+							output=output)
+
 @app.route("/finish", methods=['POST'])
 def finish():
-	file = open("session.txt", "r") 
-	filename = file.readline().split(":",1)[1] 
-	currfile = open(filename, "w")
-	origfile = open("backup-" + filename, "r")
-	currfile.write(origfile.read())
-
+	# update finish time
 	timefile = open("time.txt", "a")
-	timefile.write("NORMAL finish:" + str(time.time())  + "\n")
+	timefile.write("NORMAL finish: \t" + str(time.time())  + "\n")
 	timefile.write("--------------------------------------\n")
+
+	file = open("session.txt", "r") 
+	info = file.readline().split(":")
+	username = info[0]
+	filename = info[1] 
+
+	# keep the user's script and recall the script for next user
+	commands.getstatusoutput ('cp ' + filename + ' ' + './results/' + username + '-' + filename)
+	# commands.getstatusoutput ('rm ' + filename)
+	commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
+
 	return render_template('index.html')
 
-@app.route('/uploader', methods = ['GET', 'POST'])
-def uploader():
+@app.route('/provbuild', methods = ['GET', 'POST'])
+def provbuild():
    if request.method == 'POST':
 		user_file = request.files['file']
 		user_file.save(secure_filename(user_file.filename))
 
+		user_name = request.form['username']
+
 		file = open("session.txt", "w")
-		file.write("session:" + user_file.filename)
+		file.write(user_name + ":" + user_file.filename + ":" + "PROVBUILD")
 
-		commands.getstatusoutput('rm -r .noworkflow')
-		commands.getstatusoutput('rm ProvScript.py')
-
+		print 'run ' + user_file.filename
 		timefile = open("time.txt", "a")
 		timefile.write(user_file.filename + "\n")
+		timefile.write("PROVBUILD start first run: \t" + str(time.time()) + "\n")
+		status, output = commands.getstatusoutput('./make.sh r ' + user_file.filename)
+		timefile.write("PROVBUILD end first run and we start here: \t" + str(time.time()) + "\n")
 
-		timefile.write("PROVBUILD start run:" + str(time.time()) + "\n")
-		print 'python __init__.py run ' + user_file.filename
-		status, output = commands.getstatusoutput('python __init__.py run ' + user_file.filename)
-		timefile.write("PROVBUILD end run:" + str(time.time()) + "\n")
-
-		return render_template('upload.html', 
+		return render_template('provbuild.html', 
 		 					user_file=user_file.filename, 
-		 					message="completed run", 
+		 					message="Initial Done", 
 		 					content=open(user_file.filename, 'r').read(), 
 		 					status=status, 
 		 					result=open("result.txt", "r").read(),
 		 					output=output, 
-		 					provscript="Please execute the 'update' command to generate a ProvScript.")
+		 					provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")
 
 @app.route("/update", methods=['POST'])
 def update():
-        file = open("session.txt", "r") 
-        filename = file.readline().split(":",1)[1]
-	if not request.form['function'] : 
-		return render_template('upload.html', 
+	file = open("session.txt", "r") 
+	info = file.readline().split(":")
+	username = info[0]
+	filename = info[1] 
+
+	if not request.form['func_var']: 
+		return render_template('provbuild.html', 
 			user_file=filename, 
-			message="unable to execute update -- no variable or function name", 
+			message="unable to execute search -- no variable or function name", 
 			content=session['content'], 
 			status="", 
 			result=open("result.txt", "r").read(),
-			output="Please enter a variable or function name to update", 
-			provscript="Please execute the 'update' command again to generate a ProvScript.")	
+			output="Please enter a variable or function name and click the 'search' button to generate a ProvScript.", 
+			provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")	
 
-	command = "python __init__.py update -t 1 "
-	if (request.form['function']): 
-		command += "-fn " + request.form['function'] + " "
+	ret = request.form['func_var']
+	command = "./make.sh "
+	if ret == 'function': 
+		command += "uf " + request.form['func_var_text'] + " "
+	elif ret == 'variable': 
+		command += "uv " + request.form['func_var_text'] + " "
 
+	print 'update ' + filename
 	timefile = open("time.txt", "a")
-	timefile.write("PROVBUILD start update:" + str(time.time())  + "\n")
-	print command + filename
+	timefile.write("PROVBUILD start update: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput(command + filename)
-	timefile.write("PROVBUILD end update:" + str(time.time())  + "\n")
+	timefile.write("PROVBUILD end update: \t" + str(time.time())  + "\n")
 
-	return render_template('upload.html', 
+	return render_template('provbuild.html', 
 					user_file=filename, 
-					message="completed update", 
+					message="Search Done (for -> " + request.form['func_var_text'] + ")",
 					content=open(filename, 'r').read(), 
 					status=status, 
 					result=open("result.txt", "r").read(),
@@ -120,75 +168,99 @@ def update():
 @app.route("/runupdate", methods=['POST'])
 def runupdate():
 	file = open("session.txt", "r") 
-	filename = file.readline().split(":",1)[1] 
+	info = file.readline().split(":")
+	username = info[0]
+	filename = info[1] 
 
 	f = open('ProvScript.py', 'w')
-	f.write(request.form['provscript'].replace("&gt;", ">").replace("&lt;", "<").replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n"))
+	code = request.form['provscript'].replace("&gt;", ">").replace("&lt;", "<").replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
+	finalcode = cleanhtml(code)
+	f.write(finalcode)
 	f.close()
 
+	# execute ProvScript.py
+	print 'run ProvScript.py'
 	timefile = open("time.txt", "a")
-	timefile.write("PROVBUILD start runupdate:" + str(time.time())  + "\n")
-	print 'python ProvScript.py'
-	status, output = commands.getstatusoutput('python ProvScript.py')
-	timefile.write("PROVBUILD end runupdate:" + str(time.time())  + "\n")
-	return render_template('upload.html', 
+	timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
+	status, output = commands.getstatusoutput('./make.sh d')
+	timefile.write("PROVBUILD end runupdate: \t" + str(time.time())  + "\n")
+
+	return render_template('provbuild.html', 
 							user_file=filename, 
-							message="completed runupdate", 
+							message="Execute Done", 
 							content=open(filename, 'r').read(), 
 							status=status, 
 							result=open("result.txt", "r").read(),
 							output=output, 
 							provscript=stripComments(open("ProvScript.py", "r").read()))
 
-@app.route("/runnormal", methods=['POST'])
-def runnormal():
-	file = open("session.txt", "r") 
-	filename = file.readline().split(":",1)[1] 
-
-	f= open(filename, 'w')
-	f.write(request.form['script'].replace("&gt;", ">").replace("<br>", "\n").replace("&lt;", "<").replace("<div>", "\n").replace("</div>", "\n"))
-	f.close()
-
-	timefile = open("time.txt", "a")
-	timefile.write("NORMAL start run:" + str(time.time())  + "\n")
-	print 'python '	+ filename
-	status, output = commands.getstatusoutput('python '	+ filename)
-	timefile.write("NORMAL end run:" + str(time.time())  + "\n")
-
-	return render_template('normal.html', 
-							user_file=filename, 
-							message="completed runupdate", 
-							content=open(filename, 'r').read(), 
-							status=status, 
-							result=open("result.txt", "r").read(),
-							output=output)
 
 @app.route("/merge", methods=['POST'])
 def merge():
+	# update merge time
+	print 'merge'
 	timefile = open("time.txt", "a")
-	timefile.write("PROVBUILD start merge:" + str(time.time()) + "\n")
-	print 'python __init__.py merge -t 1'
-	status, output = commands.getstatusoutput('python __init__.py merge -t 1')
-	timefile.write("PROVBUILD end merge:" + str(time.time()) + "\n")
-	timefile.write("--------------------------------------\n")
+	timefile.write("PROVBUILD start merge: \t" + str(time.time()) + "\n")
+	status, output = commands.getstatusoutput('./make.sh m')
+	timefile.write("PROVBUILD end merge: \t" + str(time.time()) + "\n")
 
 	file = open("session.txt", "r") 
-	filename = file.readline().split(":",1)[1] 
+	info = file.readline().split(":")
+	username = info[0]
+	filename = info[1] 
+	# merge output - new script
 	newfilename = "new-" + filename
 
+	# keep user's record in ./results/ directory
+	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + './results/' + username + '-' + filename)
+
+	# keep the current script for second try
+	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + filename)
+
+	# generate provenance for new file
+	print 'now we generate new provenance'
+	print 'run ' + filename
+	timefile = open("time.txt", "a")
+	timefile.write("PROVBUILD start another run: \t" + str(time.time()) + "\n")
+	status, output = commands.getstatusoutput('./make.sh r ' + filename)
+	timefile.write("PROVBUILD end another run: \t" + str(time.time()) + "\n")
+
+
 	newfile = open(newfilename, "r") 
-	return render_template('upload.html', 
+	return render_template('provbuild.html', 
 							user_file=newfilename, 
-							message="completed merge", 
-							content=newfile.read(), 
+							message="Merge Done", 
+							content=open(filename, 'r').read(),
 							status=status, 
 							result=open("result.txt", "r").read(),
 							output=output, 
-							provscript="Please execute the 'run + update' command to generate a ProvScript.")
+							provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")
+
+@app.route("/provfinish", methods=['POST'])
+def provfinish():
+	# update finish time
+	timefile = open("time.txt", "a")
+	timefile.write("PROVBUILD finish: \t" + str(time.time())  + "\n")
+	timefile.write("--------------------------------------\n")
+
+	file = open("session.txt", "r") 
+	info = file.readline().split(":")
+	username = info[0]
+	filename = info[1] 
+
+	# keep the user's script and recall the script for next user
+	commands.getstatusoutput ('cp ' + filename + ' ' + './results/' + username + '-' + filename)
+	# commands.getstatusoutput ('rm ' + filename)
+	commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
+
+	return render_template('index.html')
 
 @app.route("/")
 def main():
 	open('result.txt', 'w').close()
 	return render_template('index.html')
+
 if __name__ == "__main__":
-        app.run()
+	url = "http://127.0.0.1:5000"
+	threading.Timer(1.25, lambda: webbrowser.open(url)).start()
+	app.run()

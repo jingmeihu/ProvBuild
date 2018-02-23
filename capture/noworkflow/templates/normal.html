@@ -5,6 +5,22 @@
    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
    <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet">
    <title></title>
+
+    <style>
+        pre {
+            outline: 2px dotted #ddd;
+            min-height: 1.5em;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+        }
+        code {
+            display:block;
+        }
+
+        [contenteditable] {
+            outline: none;
+        }
+    </style>
+    <link href="{{ url_for('static',filename='styles/prism.css') }}" rel="stylesheet" />
 </head>
 <body>
 
@@ -18,38 +34,56 @@ function saveEdits() {
 </script>
    <!-- Sidebar -->
    <div class="w3-sidebar w3-light-grey w3-bar-block" style="width:20%">
-      <h3 class="w3-bar-item">Actions</h3>
-      <form action="http://localhost:5000/normal" enctype="multipart/form-data" method="post">
-         <div class="container">
-            <p><b>Upload a new file:</b></p><input name="file" type="file"> <input type="submit">
-         </div>
-      </form>
-      <form action="/finish" method="post">
-         <button class="w3-bar-item w3-button" name="forwardBtn" type="submit"><b>Finish</b></button>
-      </form><br>
+      <h3 class="w3-bar-item w3-light-blue w3-padding-16">Actions</h3>
+      <form action="http://localhost:5000/normal" enctype="multipart/form-data" method="post"></form>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        <form action="/runnormal" method="post">
+            <button class="w3-bar-item w3-button w3-grey w3-large w3-padding-8 w3-center" name="script" onclick="saveEdits()" id="submitNormal" type="submit" ><b>Run</b></button>
+        </form>
+        <br><br><br>
+        <form action="/finish" method="post">
+            <button class="w3-bar-item w3-button w3-grey w3-large w3-padding-8 w3-center" name="forwardBtn" type="submit"><b>Finish</b></button>
+        </form>
    </div><!-- Page Content -->
+
+    <script src="{{url_for('static', filename='js/prism.js') }}"></script>
+    <script src="{{url_for('static', filename='js/misbehave.js') }}"></script>
    <div style="margin-left:20%">
       <div class="w3-container w3-teal">
-         <h1>ProvBuild</h1>
+          <h1>ProvBuild</h1>
       </div>
       <div class="container">
          <h1>Dashboard</h1>
-         <h5>Uploaded file:</h5><code>{{user_file}}</code><br><br>
+         <h5>Current script file:</h5><code><b>{{user_file}}</b></code><br><br>
          <p style="color:red"><b>{{message}}</b></p>
-         <p>Terminal</p>
-         <pre style="border: 2px solid #666; padding: 10px; background-color: #c0c3c6;">{{ output }}</pre>
          <p>Results</p>
          <pre style="border: 2px solid #666; padding: 10px; background-color: #ccdfff;">{{ result }}</pre>
          <p>{{user_file}}</p>
-         <pre id="script" style="border: 2px solid #666;" contenteditable="true">{{ content }}</pre>
-         <form action="/runnormal" method="post">
-            <button class="w3-bar-item w3-button" name="script" onclick="saveEdits()" id="submitNormal" type="submit" ><b>Run</b></button>
-         </form><br>
-
+         <!--<div contenteditable class="edittext" id="script" style="border: 2px solid #666; background-color: #f7de71; white-space: pre-wrap;">{{ content }}</div>-->
+          <pre id="pre"><code id="script" class="language-python" contenteditable="true" autocorrect="off" autocapitalize="off" spellcheck="false">{{ content }}</code></pre>
+          <br>
+          <p>Terminal Output (for debugging) </p>
+          <pre style="border: 2px solid #666; padding: 10px; background-color: #c0c3c6;">{{ output }}</pre>
          <br>
       </div>
+
+       <script>
+           var code = document.querySelector('#code')
+           var misbehave = new Misbehave(code, {
+               oninput : function() {
+                   Prism.highlightElement(code)
+               }
+           })
+           var pre = document.querySelector('#pre')
+           pre.onclick = function() {
+               code.focus()
+               return false
+           }
+       </script>
       <footer class="footer" style="clear:both;">
-         <p>&copy; Fall 2017 CS279 Crystal Hu and Yuna Joung</p>
+          <br>
+          <br>
+         <p>&copy; 2017-2018 ProvBuild</p>
       </footer>
    </div>
 </body>

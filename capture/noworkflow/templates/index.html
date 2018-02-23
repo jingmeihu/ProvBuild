@@ -26,27 +26,38 @@
             <p>ProvBuild is an incremental compilation application that automates information extraction from the provenance and optimizes information extraction from the provenance and optimizes the script modification and execution process.</p>
 
             <p>To get started, upload a python script</p>
+
             <p class="lead"></p>
 
-            <p>ProvBuild</p>
-            <form action = "http://localhost:5000/uploader" method = "POST" 
+            <p>ProvBuild Mode</p>
+            <form action = "http://localhost:5000/provbuild" method = "POST"
                enctype = "multipart/form-data">
-               <input type = "file" name = "file" />
-               <input type = "submit"/>
+               <div class="container">
+                  User name:<br>
+                  <input name="username" type="text" value=""><br><br>
+                  <input type = "file" name = "file" />
+                  <input type = "submit"/>
+                  <br><br>
+               </div>
             </form>
             <br>
-            <p>Normal</p>
+            <p>Normal Mode</p>
             <form action = "http://localhost:5000/normal" method = "POST" 
                enctype = "multipart/form-data">
-               <input type = "file" name = "file" />
-               <input type = "submit"/>
+               <div class="container">
+                  User name:<br>
+                  <input name="username" type="text" value=""><br><br>
+                  <input type = "file" name = "file" />
+                  <input type = "submit"/>
+                  <br><br>
+               </div>
             </form>
 
          </div>
                  
          <footer class="footer">
                     
-            <p>&copy; Fall 2017 CS279 Crystal Hu and Yuna Joung</p>
+            <p>&copy; 2017-2018 ProvBuild</p>
                 
          </footer>
           
