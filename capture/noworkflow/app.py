@@ -33,13 +33,13 @@ def normal():
 
 		user_name = request.form['username']
 
-		file = open("session.txt", "w")
+		file = open("record-time/session.txt", "w")
 		file.write(user_name + ":" + user_file.filename + ":" + "NORMAL")
 
 		# initialize the first run, recall the time
 		print 'run ' + user_file.filename
-		timefile = open("time.txt", "a")
-		timefile.write(user_file.filename + "\n")
+		timefile = open("record-time/time.txt", "a")
+		timefile.write(user_name + "\t" + user_file.filename + "\n")
 		timefile.write("NORMAL start first run: \t" + str(time.time()) + "\n")
 		status, output = commands.getstatusoutput('python ' + user_file.filename)
 		timefile.write("NORMAL end first run and we start here: \t" + str(time.time()) + "\n")
@@ -54,7 +54,7 @@ def normal():
 
 @app.route("/runnormal", methods=['POST'])
 def runnormal():
-	file = open("session.txt", "r") 
+	file = open("record-time/session.txt", "r") 
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
@@ -67,7 +67,7 @@ def runnormal():
 
 	# execute the script
 	print 'run '	+ filename
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("NORMAL start run: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput('python '	+ filename)
 	timefile.write("NORMAL end run: \t" + str(time.time())  + "\n")
@@ -83,11 +83,11 @@ def runnormal():
 @app.route("/finish", methods=['POST'])
 def finish():
 	# update finish time
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("NORMAL finish: \t" + str(time.time())  + "\n")
 	timefile.write("--------------------------------------\n")
 
-	file = open("session.txt", "r") 
+	file = open("record-time/session.txt", "r") 
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
@@ -107,12 +107,12 @@ def provbuild():
 
 		user_name = request.form['username']
 
-		file = open("session.txt", "w")
+		file = open("record-time/session.txt", "w")
 		file.write(user_name + ":" + user_file.filename + ":" + "PROVBUILD")
 
 		print 'run ' + user_file.filename
-		timefile = open("time.txt", "a")
-		timefile.write(user_file.filename + "\n")
+		timefile = open("record-time/time.txt", "a")
+		timefile.write(user_name + "\t" + user_file.filename + "\n")
 		timefile.write("PROVBUILD start first run: \t" + str(time.time()) + "\n")
 		status, output = commands.getstatusoutput('./make.sh r ' + user_file.filename)
 		timefile.write("PROVBUILD end first run and we start here: \t" + str(time.time()) + "\n")
@@ -128,7 +128,7 @@ def provbuild():
 
 @app.route("/update", methods=['POST'])
 def update():
-	file = open("session.txt", "r") 
+	file = open("record-time/session.txt", "r") 
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
@@ -151,7 +151,7 @@ def update():
 		command += "uv " + request.form['func_var_text'] + " "
 
 	print 'update ' + filename
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start update: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput(command + filename)
 	timefile.write("PROVBUILD end update: \t" + str(time.time())  + "\n")
@@ -167,7 +167,7 @@ def update():
 
 @app.route("/runupdate", methods=['POST'])
 def runupdate():
-	file = open("session.txt", "r") 
+	file = open("record-time/session.txt", "r") 
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
@@ -180,7 +180,7 @@ def runupdate():
 
 	# execute ProvScript.py
 	print 'run ProvScript.py'
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput('./make.sh d')
 	timefile.write("PROVBUILD end runupdate: \t" + str(time.time())  + "\n")
@@ -199,12 +199,12 @@ def runupdate():
 def merge():
 	# update merge time
 	print 'merge'
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start merge: \t" + str(time.time()) + "\n")
 	status, output = commands.getstatusoutput('./make.sh m')
 	timefile.write("PROVBUILD end merge: \t" + str(time.time()) + "\n")
 
-	file = open("session.txt", "r") 
+	file = open("record-time/session.txt", "r") 
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
@@ -216,17 +216,18 @@ def merge():
 
 	# keep the current script for second try
 	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + filename)
+	commands.getstatusoutput ('rm ' + 'new-' + filename)
 
 	# generate provenance for new file
 	print 'now we generate new provenance'
 	print 'run ' + filename
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start another run: \t" + str(time.time()) + "\n")
 	status, output = commands.getstatusoutput('./make.sh r ' + filename)
 	timefile.write("PROVBUILD end another run: \t" + str(time.time()) + "\n")
 
 
-	newfile = open(newfilename, "r") 
+	newfile = open(filename, "r") 
 	return render_template('provbuild.html', 
 							user_file=newfilename, 
 							message="Merge Done", 
@@ -239,11 +240,11 @@ def merge():
 @app.route("/provfinish", methods=['POST'])
 def provfinish():
 	# update finish time
-	timefile = open("time.txt", "a")
+	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD finish: \t" + str(time.time())  + "\n")
 	timefile.write("--------------------------------------\n")
 
-	file = open("session.txt", "r") 
+	file = open("record-time/session.txt", "r") 
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
