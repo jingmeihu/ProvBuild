@@ -112,7 +112,7 @@ class Update(Command):
                 help="function name input")
         add_arg("-vn", "--varname", type=str,
                 help="variable name input")
-        add_arg("--debug", type = int, default=1, help="enable debug")
+        add_arg("--debug", type = int, default=0, help="enable debug")
 
     def execute(self, args):
         # first, we need to restore the metascript based on trial id
