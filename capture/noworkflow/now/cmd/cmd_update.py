@@ -75,12 +75,18 @@ def check_related_call(name, result_variable):
             ret.append(r.id)
     return ret
 
+def check_related_arg(line, result_variable):
+    ret = []
+    for r in result_variable:
+        if r.type == 'arg' and r.line == line:
+            ret.append(r.id)
+    return ret
+
 def check_related_call_general(name, line, result_variable):
     ret = []
     for r in result_variable:
-        if r.type == 'call':
-            if r.type == 'call' and r.line == line:
-                ret.append(r.id)
+        if r.type == 'call' and r.line == line:
+            ret.append(r.id)
     return ret
 
 def remove_loop_cond_funcdef(funclist):
@@ -256,14 +262,15 @@ class Update(Command):
             for i in given_funcname_list:
                 funcid += check_related_call(i, result_variable)
 
+            funcid_calls = []
             # make a copy
             for i in funcid:
                 funcid_copy.append(i)
+                funcid_calls.append(i)
 
             debug_print("function ID", funcid, debug_mode)
 
             funcid_end = []
-            funcid_calls = []
             for f in funcid_copy:
                 for r in result_variabledependency:
                     if r.source_id == f and r.target_id not in funcid_copy:
@@ -293,6 +300,7 @@ class Update(Command):
                                     if i not in funcid_copy:
                                         debug_detail_print ("we add more calls here: {}".format(i), debug_mode)
                                         funcid_copy.append(i)
+                                    if i not in funcid_calls:
                                         funcid_calls.append(i)
 
             debug_print("function ID sub list(updated target_id)", funcid_copy, debug_mode)
@@ -313,8 +321,8 @@ class Update(Command):
                                 if i not in funcid_copy:
                                     debug_detail_print ("we add more calls here: {}".format(i), debug_mode)
                                     funcid_copy.append(i)
-                                    if i not in funcid_calls:
-                                        funcid_calls.append(i)
+                                if i not in funcid_calls:
+                                    funcid_calls.append(i)
             debug_print("function ID list (updated source_id)", funcid_copy, debug_mode)
             debug_print("function ID related call list (updated source_id)", funcid_calls, debug_mode)
 
@@ -328,6 +336,8 @@ class Update(Command):
                             if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in funcid_end and r.target_id not in funcid_copy:
                                     funcid_end.append(r.target_id)
+                            else:
+                                funcid_calls.append(r.target_id)
                         elif r.type == 'direct':
                             if result_variable[r.target_id-1].type == 'function definition':
                                 pass
@@ -382,7 +392,7 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v:
                         if r.type == "parameter":
-                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params and r.target_id not in funcids:
+                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params: # and r.target_id not in funcids:
                                 func_params.append(r.target_id)
             debug_print("function ID list (graybox updated)", funcids, debug_mode)
             debug_print("function param list", func_params, debug_mode)
@@ -394,16 +404,18 @@ class Update(Command):
             for i in func_params:
                 func_params_name.append(result_variable[i-1].name)
 
+            funcid_end.sort()
             for i in funcid_end:
-                if result_variable[i-1].name not in func_params_name:
+                if result_variable[i-1].name not in func_params_name and i not in func_params_add:
                     func_params_add.append(i)
             debug_print("function param add list", func_params_add, debug_mode)
 
             for i in funcid_end:
                 for j in func_params:
                     if result_variable[i-1].name == result_variable[j-1].name and i < j:
-                        func_params_remove.append(j)
-                        if i not in func_params:
+                        if j not in func_params_remove:
+                            func_params_remove.append(j)
+                        if i not in func_params and i not in func_params_add:
                             func_params_add.append(i)
             debug_print("function param add list (updated)", func_params_add, debug_mode)
 
@@ -417,6 +429,7 @@ class Update(Command):
                     if i != j and result_variable[i-1].name == result_variable[j-1].name:
                         if i < j and j not in func_params_remove:
                             func_params_remove.append(j)
+            debug_print("function param remove list", func_params_remove, debug_mode)
 
             # remove those 'buildin' variables
             for i in func_params:
@@ -461,12 +474,16 @@ class Update(Command):
             funcids_remove = []
             related_func_calls = []
             normal_funcid = []
+            arg_funcid = []
             for v in funcids:
                 if result_variable[v-1].type == 'call':
                     related_func_calls.append(v)
                     funcids_remove.append(v)
                 if result_variable[v-1].type == 'normal':
                     normal_funcid.append(v)
+                    funcids_remove.append(v)
+                if result_variable[v-1].type == 'arg':
+                    arg_funcid.append(v)
                     funcids_remove.append(v)
             for i in funcids_remove:
                 funcids.remove(i)
@@ -536,6 +553,21 @@ class Update(Command):
                                 related_funcdef_list.append(belong_funcdef)
             debug_print("related function definition list (updated)", related_funcdef_list, debug_mode)
 
+            # deal with the normal variable problem - remove irrelevant normal variable assignments
+            normal_funcid.sort()
+            debug_print("related normal variable list", normal_funcid, debug_mode)
+            normal_funcid_remove = []
+            for i in normal_funcid:
+                for r in result_variabledependency:
+                    if r.source_id == i and r.type == "direct" and result_variable[r.target_id-1].type == 'normal':
+                        if r.target_id not in normal_funcid and r.target_id not in func_params:
+                            normal_funcid_remove.append(i)
+                        elif r.target_id in normal_funcid_remove:
+                            normal_funcid_remove.append(i)
+            debug_print("related normal variable remove list", normal_funcid_remove, debug_mode)
+            for i in normal_funcid_remove:
+                normal_funcid.remove(i)
+            debug_print("related normal variable list (updated)", normal_funcid, debug_mode)
 
             line_list = dict()
             # add function definition
@@ -555,6 +587,11 @@ class Update(Command):
             for i in normal_funcid:
                 if i in func_params:
                     func_params.remove(i)
+                var_line = result_variable[i-1].line
+                if var_line not in line_list:
+                    line_list[var_line] = 0
+
+            for i in arg_funcid:
                 var_line = result_variable[i-1].line
                 if var_line not in line_list:
                     line_list[var_line] = 0
@@ -584,7 +621,7 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v and r.target_id not in varid_copy:
                         debug_detail_print(">>> target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1 and result_variable[r.target_id-1].type != 'normal':
+                        if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1: # and result_variable[r.target_id-1].type != 'normal':
                             debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
                             pass
                         elif result_variable[r.target_id-1].type == 'function definition':
@@ -609,6 +646,7 @@ class Update(Command):
                                     if i not in varid_copy:
                                         debug_detail_print ("we add more calls here: {}".format(i), debug_mode)
                                         varid_copy.append(i)
+                                    if i not in varid_calls:
                                         varid_calls.append(i)
 
             debug_print("variable ID sub list(updated target_id)", varid_copy, debug_mode)
@@ -623,6 +661,8 @@ class Update(Command):
                         debug_detail_print(">>> source: {} -> {}, type = {}, source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                         if result_variable[r.source_id-1].type == 'normal' and result_variable[r.source_id-1].activation_id == 1:
                             varid_copy.append(r.source_id)
+                            if r.source_id not in varid_end:
+                                varid_end.append(r.source_id)
                         else:
                             varid_copy.append(r.source_id)
                             if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
@@ -635,6 +675,7 @@ class Update(Command):
                                     if i not in varid_calls:
                                         varid_calls.append(i)
             debug_print("variable ID list (updated source_id)", varid_copy, debug_mode)
+            debug_print("variable ID end list (updated source_id)", varid_end, debug_mode)
             debug_print("variable ID related call list (updated source_id)", varid_calls, debug_mode)
 
             for i in varid_calls:
@@ -647,6 +688,8 @@ class Update(Command):
                             if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in varid_end and r.target_id not in varid_copy:
                                     varid_end.append(r.target_id)
+                            else:
+                                varid_calls.append(r.target_id)
                         elif r.type == 'direct':
                             if result_variable[r.target_id-1].type == 'function definition':
                                 pass
@@ -704,7 +747,7 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v:
                         if r.type == "parameter":
-                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params and r.target_id not in varids:
+                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params: # and r.target_id not in varids:
                                 func_params.append(r.target_id)
             debug_print("var ID list (graybox updated)", varids, debug_mode)
             debug_print("function param list", func_params, debug_mode)
@@ -715,17 +758,19 @@ class Update(Command):
             for i in func_params:
                 func_params_name.append(result_variable[i-1].name)
 
+            varid_end.sort()
             debug_print("variable end ID list", varid_end, debug_mode)
             for i in varid_end:
-                if result_variable[i-1].name not in func_params_name:
+                if result_variable[i-1].name not in func_params_name and i not in func_params_add:
                     func_params_add.append(i)
             debug_print("function param add list", func_params_add, debug_mode)
 
             for i in varid_end:
                 for j in func_params:
-                    if result_variable[i-1].name == result_variable[j-1].name and i < j and j not in func_params_remove:
-                        func_params_remove.append(j)
-                        if i not in func_params:
+                    if result_variable[i-1].name == result_variable[j-1].name and i < j:
+                        if j not in func_params_remove:
+                            func_params_remove.append(j)
+                        if i not in func_params and i not in func_params_add:
                             func_params_add.append(i)
             debug_print("function param add list (updated)", func_params_add, debug_mode)
 
@@ -786,6 +831,7 @@ class Update(Command):
             varids_remove = []
             related_func_calls = []
             normal_varid = []
+            arg_varid = []
             for v in varids:
                 if result_variable[v-1].type == 'call':
                     related_func_calls.append(v)
@@ -793,11 +839,15 @@ class Update(Command):
                 if result_variable[v-1].type == 'normal':
                     normal_varid.append(v)
                     varids_remove.append(v)
+                if result_variable[v-1].type == 'arg':
+                    arg_varid.append(v)
+                    varids_remove.append(v)
             for i in varids_remove:
                 varids.remove(i)
 
             debug_print("related funcion activation list", related_func_calls, debug_mode)
             debug_print("related normal variable list", normal_varid, debug_mode)
+            debug_print("related arg variable list", arg_varid, debug_mode)
             # it should be nothing left in varids
             debug_print("var ID list (final)", varids, debug_mode)
 
@@ -862,6 +912,22 @@ class Update(Command):
                                 related_funcdef_list.append(belong_funcdef)
             debug_print("related function definition list (updated)", related_funcdef_list, debug_mode)
 
+            # deal with the normal variable problem - remove irrelevant normal variable assignments
+            normal_varid.sort()
+            debug_print("related normal variable list", normal_varid, debug_mode)
+            normal_varid_remove = []
+            for i in normal_varid:
+                for r in result_variabledependency:
+                    if r.source_id == i and r.type == "direct" and result_variable[r.target_id-1].type == 'normal':
+                        if r.target_id not in normal_varid and r.target_id not in func_params:
+                            normal_varid_remove.append(i)
+                        elif r.target_id in normal_varid_remove:
+                            normal_varid_remove.append(i)
+            debug_print("related normal variable remove list", normal_varid_remove, debug_mode)
+            for i in normal_varid_remove:
+                normal_varid.remove(i)
+            debug_print("related normal variable list (updated)", normal_varid, debug_mode)
+
             line_list = dict()
             # add function definition
             for i in related_funcdef_list:
@@ -880,6 +946,11 @@ class Update(Command):
             for i in normal_varid:
                 if i in func_params:
                     func_params.remove(i)
+                var_line = result_variable[i-1].line
+                if var_line not in line_list:
+                    line_list[var_line] = 0
+
+            for i in arg_varid:
                 var_line = result_variable[i-1].line
                 if var_line not in line_list:
                     line_list[var_line] = 0
