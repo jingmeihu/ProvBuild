@@ -82,19 +82,19 @@ class FunctionVisitor(ast.NodeVisitor):                                         
     def new_definition_context_fake_loop(self, node, typ="FUNCTION"):
         """Visit node, open context. Collect code"""
         """ for loop case, including for loop"""
-        self.contexts.append(self.definitions.add_object(
-            self.contexts[-1].namespace if len(self.contexts) > 1 else "",
-            "LOOP_STMT",
-            self.extract_code(node),
-            typ,
-            self.contexts[-1].id,
-            node.first_line,
-            node.last_line,
-            0
-        ))
+        # self.contexts.append(self.definitions.add_object(
+        #     self.contexts[-1].namespace if len(self.contexts) > 1 else "",
+        #     "LOOP_STMT",
+        #     self.extract_code(node),
+        #     typ,
+        #     self.contexts[-1].id,
+        #     node.first_line,
+        #     node.last_line,
+        #     0
+        # ))
 
-        self.generic_visit(node)
-        self.contexts.pop()
+        # self.generic_visit(node)
+        # self.contexts.pop()
 
     def visit_ClassDef(self, node):                                              # pylint: disable=invalid-name
         """Visit ClassDef. Ignore Classes"""
@@ -116,9 +116,7 @@ class FunctionVisitor(ast.NodeVisitor):                                         
 
     def visit_FunctionDef(self, node, fg = 1):                                           # pylint: disable=invalid-name
         """Visit FunctionDef. Collect function code"""
-        if fg == 2:
-            self.new_definition_context_fake_loop(node, typ="FUNCTION")
-        elif fg == 3:
+        if fg == 0:
             self.new_definition_context_fake_cond(node, typ="FUNCTION")
         else:
             self.new_definition_context(node, typ="FUNCTION")
