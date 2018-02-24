@@ -24,7 +24,6 @@ def write_result(data1, data2):
     file = open("result.txt", "w")
     file.write(str(t)+'\n')
     file.write(str(p)+'\n')
-    return
 
 def run_simulation(a, b):
     data1 = simulation_add(a, b)
@@ -62,6 +61,7 @@ data_input_b = "data2.dat"
 data_a = csv_read(data_input_a)
 data_b = csv_read(data_input_b)
 data_add, data_double = run_simulation(data_a, data_b)
+
 write_result(data_add, data_double)
-write_output_0(data_add)
-write_output_1(data_double)
+# write_output_0(data_add)
+# write_output_1(data_double)
