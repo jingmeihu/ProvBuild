@@ -14,7 +14,6 @@ def func_3(var1):
 	return var1+10
 
 def file_write(n, m, x, y, z, l, b):
-
 	file = open("result.txt", "w") 
 	file.write(str(n)+'\n')
 	file.write(str(m)+'\n') 

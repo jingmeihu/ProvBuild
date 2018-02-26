@@ -24,6 +24,7 @@ def write_result(data1, data2):
     file = open("result.txt", "w")
     file.write(str(t)+'\n')
     file.write(str(p)+'\n')
+    file.close() 
 
 def run_simulation(a, b):
     data1 = simulation_add(a, b)
