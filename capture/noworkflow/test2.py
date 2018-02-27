@@ -64,5 +64,5 @@ data_b = csv_read(data_input_b)
 data_add, data_double = run_simulation(data_a, data_b)
 
 write_result(data_add, data_double)
-# write_output_0(data_add)
-# write_output_1(data_double)
+write_output_0(data_add)
+write_output_1(data_double)
