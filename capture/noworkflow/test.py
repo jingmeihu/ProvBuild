@@ -13,7 +13,8 @@ def func_2(var1, var2):
 def func_3(var1):
 	return var1+10
 
-def file_write(n, m, x, y, z, l, b):
+def file_write(n, m, x, y, z, l, a, b):
+
 	file = open("result.txt", "w") 
 	file.write(str(n)+'\n')
 	file.write(str(m)+'\n') 
@@ -21,6 +22,7 @@ def file_write(n, m, x, y, z, l, b):
 	file.write(str(y)+'\n') 
 	file.write(str(z)+'\n') 
 	file.write(str(l)+'\n') 
+	file.write(str(a)+'\n') 
 	file.write(str(b)+'\n') 
 	file.close() 
 
@@ -28,9 +30,9 @@ x = func_3(10)
 y = func_3(20)
 n = func_3(30)
 a = func_3(5)
-b = func_3(1)
 y, z = func_1(x, y, 1) 
 m = func_2(y, z)
+b = func_3(1)
 if m % 2 == 0:
 	l = func_2(x, z) 
 elif y % 2 == 0:
@@ -42,13 +44,16 @@ for i in range(1,5):
 	m += func_2(a,i)
 while l > 0:
 	l -= 10
+for j in range(1,5):
+	b += 3
+y = y + 10 
+
 print(n)
 print(m)
-print(l)
 print(x)
 print(y)
 print(z)
-
-y = y + 10 
-
-file_write(n, m, x, y, z, l, b)
+print(l)
+print(a)
+print(b)
+file_write(n, m, x, y, z, l, a, b)
