@@ -182,9 +182,13 @@ class Update(Command):
 
         # get the global variable declarations here
         var_defs = []
+        # get func graybox list here
+        func_graybox = []
         for r in result_variable:
             if r.activation_id == 1 and r.type == 'normal':
                 var_defs.append(r.name)
+            if r.type == '--funcgraybox--':
+                func_graybox.append(r.id)
         var_defs = list(set(var_defs))
         if args.varname is not None:
             if args.varname not in var_defs:
@@ -296,9 +300,9 @@ class Update(Command):
                             if r.target_id not in funcid_end:
                                 funcid_end.append(r.target_id)
                         else:
-                            if result_variable[r.target_id-1].name == 'return' and result_variable[r.target_id-2].name == '--graybox--':
-                                debug_detail_print ("return {}, we add graybox {}".format(r.target_id, r.target_id-1), debug_mode)
-                                funcid_copy.append(r.target_id-1)
+                            # if result_variable[r.target_id-1].name == 'return' and result_variable[r.target_id-2].name == '--graybox--':
+                            #     debug_detail_print ("return {}, we add graybox {}".format(r.target_id, r.target_id-1), debug_mode)
+                            #     funcid_copy.append(r.target_id-1)
                             funcid_copy.append(r.target_id)
                             if result_variable[r.target_id-1].type == 'call' and result_variable[r.target_id-1].activation_id == 1:
                                 same_call = check_related_call_general(result_variable[r.target_id-1].name, result_variable[r.target_id-1].line, result_variable)
@@ -320,16 +324,20 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in funcid_copy:
                         debug_detail_print(">>> source: {} -> {}, type = {}, source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        funcid_copy.append(r.source_id)
-                        if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
-                            same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
-                            debug_print("call in the same line", same_call)
-                            for i in same_call:
-                                if i not in funcid_copy:
-                                    debug_detail_print ("we add more calls here: {}".format(i), debug_mode)
-                                    funcid_copy.append(i)
-                                if i not in funcid_calls:
-                                    funcid_calls.append(i)
+                        if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
+                            debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
+                            pass
+                        else:
+                            funcid_copy.append(r.source_id)
+                            if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
+                                same_call = check_related_call_general(result_variable[r.source_id-1].name, result_variable[r.source_id-1].line, result_variable)
+                                debug_print("call in the same line", same_call)
+                                for i in same_call:
+                                    if i not in funcid_copy:
+                                        debug_detail_print ("we add more calls here: {}".format(i), debug_mode)
+                                        funcid_copy.append(i)
+                                    if i not in funcid_calls:
+                                        funcid_calls.append(i)
             debug_print("function ID list (updated source_id)", funcid_copy, debug_mode)
             debug_print("function ID related call list (updated source_id)", funcid_calls, debug_mode)
 
@@ -387,11 +395,29 @@ class Update(Command):
             debug_print("cond list", cond_list, debug_mode)
             debug_print("variable end ID list", funcid_end, debug_mode)
 
+            activations = []
+            for i in funcids:
+                actid = result_variable[i-1].activation_id
+                if actid > 1:
+                    if actid not in activations:
+                        activations.append(actid)
+            debug_print("activation list", activations, debug_mode)
+
             graybox_funcid = []
-            for v in funcids:
-                if result_variable[v-1].type == '--graybox--':
-                    graybox_funcid.append(v)
+            for i in func_graybox:
+                actid = result_variable[i-1].activation_id
+                if actid in activations:
+                    if i not in graybox_funcid:
+                        graybox_funcid.append(i)
+                    if i not in funcids:
+                        funcids.append(i)
             debug_print("graybox variable list", graybox_funcid, debug_mode)
+
+
+            # for v in funcids:
+            #     if result_variable[v-1].type == '--graybox--':
+            #         graybox_funcid.append(v)
+            # debug_print("graybox variable list (updated)", graybox_funcid, debug_mode)
 
             # related functions' parameters
             func_params = []
@@ -475,7 +501,8 @@ class Update(Command):
             for i in funcids_remove:
                 funcids.remove(i)
             for i in graybox_funcid:
-                funcids.remove(i)
+                if i in funcids:
+                    funcids.remove(i)
             debug_print("function ID list (updated)", funcids, debug_mode)
 
             funcids_remove = []
