@@ -153,15 +153,19 @@ class Update(Command):
         # definition provenance part
         # for function_def
         function_def = FunctionDef(trial_ref=args.trial)
-        result_functiondef = function_def.pull_content(trial.id)
-        # function_def.push_content(metascript.trial_id, result_functiondef)
-        function_def_table = function_def.__table__
-        ### print ('Step 1: Definition prov: {}'.format(function_def_table))
+        if function_def is not None:
+            result_functiondef = function_def.pull_content(trial.id)
+            # function_def.push_content(metascript.trial_id, result_functiondef)
+            function_def_table = function_def.__table__
+            ### print ('Step 1: Definition prov: {}'.format(function_def_table))
 
-        # collect all the function definitions
-        func_defs = []
-        for r in result_functiondef:
-            func_defs.append(r.name)
+            # collect all the function definitions
+            func_defs = []
+            for r in result_functiondef:
+                func_defs.append(r.name)
+        else:
+            result_functiondef = []
+            func_defs = []
 
         if args.funcname is not None:
             if args.funcname not in func_defs:
@@ -205,7 +209,13 @@ class Update(Command):
         # for function_activation
 
         function_activation = Activation(trial_ref=args.trial)
-        result_functionactivation = function_activation.pull_content(trial.id)
+        if function_activation is not None:
+            result_functionactivation = function_activation.pull_content(trial.id)
+            # function_activation.push_content(metascript.trial_id, new_result_functionactivation)
+            function_activation_table = function_activation.__table__
+            # print ('Step 4: Execution prov: {}'.format(function_activation_table))
+        else:
+            result_functionactivation = []
         ### if the input is function name, we are dealing with function
         if args.funcname is not None:
             given_funcname = args.funcname
@@ -214,9 +224,6 @@ class Update(Command):
         else:
             given_varname = args.varname
             debug_print("given variable name", given_varname)
-        # function_activation.push_content(metascript.trial_id, new_result_functionactivation)
-        function_activation_table = function_activation.__table__
-        # print ('Step 4: Execution prov: {}'.format(function_activation_table))
 
         #########################################
         # print("I think we are done with the provenance part")
@@ -557,6 +564,7 @@ class Update(Command):
             normal_funcid.sort()
             debug_print("related normal variable list", normal_funcid, debug_mode)
             normal_funcid_remove = []
+            normal_funcid_remove_add = []
             for i in normal_funcid:
                 for r in result_variabledependency:
                     if r.source_id == i and r.type == "direct" and result_variable[r.target_id-1].type == 'normal':
@@ -564,10 +572,21 @@ class Update(Command):
                             normal_funcid_remove.append(i)
                         elif r.target_id in normal_funcid_remove:
                             normal_funcid_remove.append(i)
+                        elif r.target_id in normal_funcid and i in normal_funcid_remove:
+                            normal_funcid_remove_add.append(i)
             debug_print("related normal variable remove list", normal_funcid_remove, debug_mode)
             for i in normal_funcid_remove:
                 normal_funcid.remove(i)
             debug_print("related normal variable list (updated)", normal_funcid, debug_mode)
+            for i in normal_funcid_remove_add:
+                if i not in normal_funcid:
+                    normal_funcid.append(i)
+            for i in normal_funcid_remove_add:
+                for r in result_variabledependency:
+                    if r.source_id == i and r.type == "direct" and result_variable[r.target_id-1].type == 'normal':
+                        if r.target_id not in normal_funcid:
+                            normal_funcid.append(r.target_id)
+            debug_print("related normal variable list (add back)", normal_funcid, debug_mode)
 
             line_list = dict()
             # add function definition
@@ -916,6 +935,7 @@ class Update(Command):
             normal_varid.sort()
             debug_print("related normal variable list", normal_varid, debug_mode)
             normal_varid_remove = []
+            normal_varid_remove_add = []
             for i in normal_varid:
                 for r in result_variabledependency:
                     if r.source_id == i and r.type == "direct" and result_variable[r.target_id-1].type == 'normal':
@@ -923,10 +943,22 @@ class Update(Command):
                             normal_varid_remove.append(i)
                         elif r.target_id in normal_varid_remove:
                             normal_varid_remove.append(i)
+                        elif r.target_id in normal_varid and i in normal_varid_remove:
+                            normal_varid_remove_add.append(i)
             debug_print("related normal variable remove list", normal_varid_remove, debug_mode)
             for i in normal_varid_remove:
                 normal_varid.remove(i)
             debug_print("related normal variable list (updated)", normal_varid, debug_mode)
+            debug_print("related normal variable add list (updated)", normal_varid_remove_add, debug_mode)
+            for i in normal_varid_remove_add:
+                if i not in normal_varid:
+                    normal_varid.append(i)
+            for i in normal_varid_remove_add:
+                for r in result_variabledependency:
+                    if r.source_id == i and r.type == "direct" and result_variable[r.target_id-1].type == 'normal':
+                        if r.target_id not in normal_varid:
+                            normal_varid.append(r.target_id)
+            debug_print("related normal variable list (add back)", normal_varid, debug_mode)
 
             line_list = dict()
             # add function definition
