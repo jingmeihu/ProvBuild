@@ -759,7 +759,8 @@ class Update(Command):
             #     varid_copy.remove(i)
             varids = varid_copy
 
-            loop_list = []
+            loop_list = [] # iterative variable, such as i and j
+            loop_base_list = [] # variable in loop
             cond_list = []
             for v in varids:
                 for r in result_variabledependency:
@@ -767,6 +768,7 @@ class Update(Command):
                         if r.type == "loop":
                             debug_detail_print(">>> loop: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type), debug_mode)
                             loop_list.append(r.target_id)
+                            loop_base_list.append(r.source_id)
                             if r.target_id not in varids:
                                 varids.append(r.target_id)
                         if r.type == "conditional":
@@ -779,6 +781,7 @@ class Update(Command):
                                 varids.append(r.target_id)
             debug_print("variable ID (with loop and cond)", varids, debug_mode)
             debug_print("loop list", loop_list, debug_mode)
+            debug_print("loop base list", loop_base_list, debug_mode)
             debug_print("cond list", cond_list, debug_mode)
             debug_print("variable end ID list", varid_end, debug_mode)
 
@@ -864,6 +867,21 @@ class Update(Command):
             debug_print("function param list (updated)", func_params, debug_mode)
             debug_print("normal variable (should be added later)", normal_should_be_added, debug_mode)
             debug_print("var ID list (funcparams updated)", varids, debug_mode)
+
+            params_need_trace_back = []
+            for i in func_params:
+                if i in loop_base_list:
+                    params_need_trace_back.append(i)
+            debug_print("param list (need trace back)", params_need_trace_back, debug_mode)
+
+            for i in params_need_trace_back:
+                func_params.remove(i)
+                for r in result_variabledependency:
+                    if r.source_id == i and r.type == 'direct' and result_variable[r.target_id-1].type == 'normal':
+                        if r.target_id not in loop_list and r.target_id not in func_params:
+                            func_params.append(r.target_id)
+            debug_print("function param list (trace back)", func_params, debug_mode)
+
 
             related_funcdef_list = []
             varids_remove = []
@@ -1041,6 +1059,7 @@ class Update(Command):
                 elif line_list[add_line] != 0:
                     line_list[add_line].append(i)
 
+        debug_print("FINAL param list", func_params, debug_mode)
         param_name = []
         param_value = []
         for i in func_params:
