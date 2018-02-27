@@ -408,7 +408,7 @@ class Tracer(Profiler):                                                         
         if "import" in call.name:
             box = self.create_blackbox()
         else:
-            box = self.create_graybox()
+            box = self.create_func_graybox(variable.activation_id, variable.line)
 
         self.dependencies.add(variable.activation_id, variable.id,
                               box.activation_id, box.id, "box")
@@ -504,6 +504,11 @@ class Tracer(Profiler):                                                         
                                 {}, "--funcgraybox--", value="now(n/a)")
         return self.variables[vid]
 
+    def create_return_graybox(self, activation_id, line):
+        """Create a graybox object"""
+        vid = self.add_variable(activation_id, "--retgraybox--", line,
+                                {}, "--retgraybox--", value="now(n/a)")
+        return self.variables[vid]
 
 
     def add_generic_return(self, activation, frame):
@@ -539,7 +544,7 @@ class Tracer(Profiler):                                                         
         if NOWORKFLOW_DIR in definition_file or definition_file == "now(n/a)":
             # noworkflow activations have no side effect
             # ToDo: check if it is builtin or just C
-            blackbox = self.create_graybox()
+            blackbox = self.create_return_graybox(_return.activation_id, _return.line)
         else:
             blackbox = self.create_blackbox()
         self.dependencies.add(_return.activation_id, _return.id,
