@@ -112,7 +112,10 @@ class Activation(AlchemyProxy):
             trial_ref = kwargs.get("trial_ref", None)
         session = relational.session
         obj = Activation.load_activation(trial_ref, session=session)
-        super(Activation, self).__init__(obj)
+        if obj is not None:
+            super(Activation, self).__init__(obj)
+        else:
+            return None
 
     # ToDo: Improve hash
 

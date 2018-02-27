@@ -81,7 +81,10 @@ class FunctionDef(AlchemyProxy):
             trial_ref = kwargs.get("trial_ref", None)
         session = relational.session
         obj = FunctionDef.load_functiondef(trial_ref, session=session)
-        super(FunctionDef, self).__init__(obj)
+        if obj is not None:
+            super(FunctionDef, self).__init__(obj)
+        else:
+            return None
 
     def show(self, _print=lambda x, offset=0: print(x)):
         """Show object
