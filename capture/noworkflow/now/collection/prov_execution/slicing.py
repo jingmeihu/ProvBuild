@@ -498,6 +498,13 @@ class Tracer(Profiler):                                                         
                                 {}, "--graybox--", value="now(n/a)")
         return self.variables[vid]
 
+    def create_func_graybox(self, activation_id, line):
+        """Create a graybox object"""
+        vid = self.add_variable(activation_id, "--funcgraybox--", line,
+                                {}, "--funcgraybox--", value="now(n/a)")
+        return self.variables[vid]
+
+
 
     def add_generic_return(self, activation, frame):
         """Add return to functions that do not have return
