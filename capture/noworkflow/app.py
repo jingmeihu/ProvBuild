@@ -19,11 +19,26 @@ def stripComments(code):
     #code = str(code) code code
     #return re.sub(r'(?m) *#.*\n?', '\n', code)
     return code
+
 def cleanhtml(code):
 	code = str(code)
 	cleanrule = re.compile('<.*?>')
 	cleantext = re.sub(cleanrule, '', code)
 	return cleantext
+
+def getFuncname(line):
+	flag = 0
+	name = ""
+	for i in line:
+		if i == "'" and flag == 0:
+			flag = 1
+			continue
+		elif i == "'" and flag == 1:
+			break
+		elif flag == 1:
+			name += i
+	return name
+
 
 @app.route('/normal', methods = ['GET', 'POST'])
 def normal():
@@ -144,21 +159,25 @@ def update():
 			provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")	
 
 	ret = request.form['func_var']
+	file = open("record-time/session.txt", "a") 
 	command = "./make.sh "
 	if ret == 'function': 
 		command += "uf " + request.form['func_var_text'] + " "
+		file.write(":f:" + request.form['func_var_text'])
 	elif ret == 'variable': 
 		command += "uv " + request.form['func_var_text'] + " "
+		file.write(":v:" + request.form['func_var_text'])
 
+	
 	print 'update ' + filename
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start update: \t" + str(time.time())  + "\n")
-	status, output = commands.getstatusoutput(command + filename)
+	status, output = commands.getstatusoutput(command)
 	timefile.write("PROVBUILD end update: \t" + str(time.time())  + "\n")
 
 	return render_template('provbuild.html', 
 					user_file=filename, 
-					message="Search Done (for -> " + request.form['func_var_text'] + ")",
+					message="Search Done: " + request.form['func_var_text'],
 					content=open(filename, 'r').read(), 
 					status=status, 
 					result=open("result.txt", "r").read(),
@@ -171,6 +190,8 @@ def runupdate():
 	info = file.readline().split(":")
 	username = info[0]
 	filename = info[1] 
+	fvtype = info[-2]
+	fvname = info[-1]
 
 	f = open('ProvScript.py', 'w')
 	code = request.form['provscript'].replace("&gt;", ">").replace("&lt;", "<").replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
@@ -183,16 +204,65 @@ def runupdate():
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput('./make.sh d')
-	timefile.write("PROVBUILD end runupdate: \t" + str(time.time())  + "\n")
+	print(status)
+	print(output)
+	errorflag = 0
+	while status != 0:
+		timefile.write("PROVBUILD end runupdate (need regeneration): \t" + str(time.time())  + "\n")
+		if "NameError" in output and "is not defined" in output:
+			errorflag = 1
+			lines = output.split('\n')
+        	funcname = getFuncname(lines[-1])
 
-	return render_template('provbuild.html', 
-							user_file=filename, 
-							message="Execute Done", 
-							content=open(filename, 'r').read(), 
-							status=status, 
-							result=open("result.txt", "r").read(),
-							output=output, 
-							provscript=stripComments(open("ProvScript.py", "r").read()))
+        	file = open("record-time/session.txt", "a") 
+        	if fvtype == 'f':
+        		command = "./make.sh ufm " + fvname + " " + funcname
+        		file.write(":f:" + fvname)
+        	elif fvtype == "v":
+        		command = "./make.sh uvm " + fvname + " " + funcname
+        		file.write(":f:" + fvname)
+	
+			print 'regenerate ' + filename + ' with ' + fvname + ' and ' + funcname
+			timefile = open("record-time/time.txt", "a")
+			timefile.write("PROVBUILD start regenerate: \t" + str(time.time())  + "\n")
+			status, output = commands.getstatusoutput(command)
+			timefile.write("PROVBUILD end regenerate: \t" + str(time.time())  + "\n")
+
+			timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
+			status, output = commands.getstatusoutput('./make.sh d')
+		else: 
+			errorflag = 2
+			break
+	timefile.write("PROVBUILD end runupdate: \t" + str(time.time())  + "\n")
+	if errorflag == 0:
+		return render_template('provbuild.html', 
+						user_file=filename, 
+						message="Execute Done", 
+						content=open(filename, 'r').read(), 
+						status=status, 
+						result=open("result.txt", "r").read(),
+						output=output, 
+						provscript=stripComments(open("ProvScript.py", "r").read()))
+	elif errorflag == 1:
+		return render_template('provbuild.html', 
+				user_file=filename, 
+				message="Regenerate Done, please change again",
+				content=open(filename, 'r').read(), 
+				status=status, 
+				result=open("result.txt", "r").read(),
+				output=output, 
+				provscript=stripComments(open("ProvScript.py", "r").read().split("relevant to your update", 1)[1]))
+	else:
+		return render_template('provbuild.html', 
+						user_file=filename, 
+						message="Unknown Error", 
+						content=open(filename, 'r').read(), 
+						status=status, 
+						result="",
+						output=output, 
+						provscript="Unknown Error")
+
+
 
 
 @app.route("/merge", methods=['POST'])
@@ -229,7 +299,7 @@ def merge():
 
 	newfile = open(filename, "r") 
 	return render_template('provbuild.html', 
-							user_file=newfilename, 
+							user_file=filename, 
 							message="Merge Done", 
 							content=open(filename, 'r').read(),
 							status=status, 

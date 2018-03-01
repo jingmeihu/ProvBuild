@@ -119,6 +119,8 @@ class Update(Command):
         add_arg("-vn", "--varname", type=str,
                 help="variable name input")
         add_arg("--debug", type = int, default=0, help="enable debug")
+        add_arg("--morefunc", type=str, default='',
+                help="undefined function")
 
     def execute(self, args):
         # first, we need to restore the metascript based on trial id
@@ -136,6 +138,9 @@ class Update(Command):
             )
         )
         debug_mode = args.debug
+        more_func_name = args.morefunc
+        debug_print("undefined function name", more_func_name, debug_mode)
+
 
         # print ('Before we start, let me be clear:')
         # print ('You are dealing with Trial {} '.format(args.trial))
@@ -614,6 +619,12 @@ class Update(Command):
                             normal_funcid.append(r.target_id)
             debug_print("related normal variable list (add back)", normal_funcid, debug_mode)
 
+            if not more_func_name:
+                for i in result_functiondef:
+                    if i.name == more_func_name and i not in related_funcdef_list:
+                        related_func_calls.append(i)
+            debug_print("related function definition list (with input)", related_funcdef_list, debug_mode)
+
             line_list = dict()
             # add function definition
             for i in related_funcdef_list:
@@ -1023,6 +1034,14 @@ class Update(Command):
                         if r.target_id not in normal_varid:
                             normal_varid.append(r.target_id)
             debug_print("related normal variable list (add back)", normal_varid, debug_mode)
+
+            debug_print("undefined function name", more_func_name, debug_mode)
+            debug_print("related function definition list", related_funcdef_list, debug_mode)
+            if more_func_name != "":
+                for i in result_functiondef:
+                    if i.name == more_func_name and i.id not in related_funcdef_list:
+                        related_funcdef_list.append(i.id)
+            debug_print("related function definition list (with input)", related_funcdef_list, debug_mode)
 
             line_list = dict()
             # add function definition
