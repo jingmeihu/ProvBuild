@@ -13,10 +13,22 @@ case "$1" in
 		echo "The function name is $2 ..."
 		python __init__.py update -t 1 -fn "$2" --debug 1
 		;;
+	ufm)
+		# echo "The trial id is 1 ..."
+		echo "The function name is $2 ..."
+		echo "Also add $3 ..."
+		python __init__.py update -t 1 -fn "$2" --morefunc "$3" --debug 1
+		;;
 	uv)
 		# echo "The trial id is 1 ..."
 		echo "The variable name is $2 ..."
 		python __init__.py update -t 1 -vn "$2" --debug 1
+		;;
+	uvm)
+		# echo "The trial id is 1 ..."
+		echo "The variable name is $2 ..."
+		echo "Also add $3 ..."
+		python __init__.py update -t 1 -vn "$2" --morefunc "$3" --debug 1
 		;;
 	d)
 		echo "Compile ProvScript.py ..."
