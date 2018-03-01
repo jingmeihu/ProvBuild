@@ -26,6 +26,7 @@ from .cmd_history import History
 from .cmd_schema import Schema
 from .cmd_update import Update
 from .cmd_runupdate import RunUpdate
+from .cmd_regen import ReGen
 from .cmd_merge import Merge
 from .cmd_datainput import DataInput
 from ..utils.io import print_msg
@@ -55,6 +56,7 @@ def main():
         Schema(),
         Update(),
         RunUpdate(),
+        ReGen(),
         #DataInput(),
         Merge()
     ]
@@ -91,6 +93,7 @@ __all__ = [
     "main",
     "Update",
     "RunUpdate",
+    "ReGen",
     #"DataInput",
     "Merge"
 ]
