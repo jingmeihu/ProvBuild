@@ -52,7 +52,7 @@ def normal():
 		file.write(user_name + ":" + user_file.filename + ":" + "NORMAL")
 
 		# initialize the first run, recall the time
-		print 'run ' + user_file.filename
+		print 'run ' + user_file.filename + ": " + 'python '	+ filename
 		timefile = open("record-time/time.txt", "a")
 		timefile.write(user_name + "\t" + user_file.filename + "\n")
 		timefile.write("NORMAL start first run: \t" + str(time.time()) + "\n")
@@ -81,7 +81,7 @@ def runnormal():
 	f.close()
 
 	# execute the script
-	print 'run '	+ filename
+	print 'run '	+ filename + ": " + 'python '	+ filename
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("NORMAL start run: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput('python '	+ filename)
@@ -125,7 +125,7 @@ def provbuild():
 		file = open("record-time/session.txt", "w")
 		file.write(user_name + ":" + user_file.filename + ":" + "PROVBUILD")
 
-		print 'run ' + user_file.filename
+		print 'run ' + user_file.filename + ": " + './make.sh r ' + user_file.filename
 		timefile = open("record-time/time.txt", "a")
 		timefile.write(user_name + "\t" + user_file.filename + "\n")
 		timefile.write("PROVBUILD start first run: \t" + str(time.time()) + "\n")
@@ -169,7 +169,7 @@ def update():
 		file.write(":v:" + request.form['func_var_text'])
 
 	
-	print 'update ' + filename
+	print 'update ' + filename + ": " + command
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start update: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput(command)
@@ -200,7 +200,7 @@ def runupdate():
 	f.close()
 
 	# execute ProvScript.py
-	print 'run ProvScript.py'
+	print 'run ProvScript.py: ' + './make.sh d' 
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
 	status, output = commands.getstatusoutput('./make.sh d')
@@ -210,29 +210,21 @@ def runupdate():
 	while status != 0:
 		timefile.write("PROVBUILD end runupdate (need regeneration): \t" + str(time.time())  + "\n")
 		if "NameError" in output and "is not defined" in output:
-			errorflag = 1
 			lines = output.split('\n')
-        	funcname = getFuncname(lines[-1])
+	        	funcname = getFuncname(lines[-1])
 
-        	file = open("record-time/session.txt", "a") 
-        	if fvtype == 'f':
-        		command = "./make.sh ufm " + fvname + " " + funcname
-        		file.write(":f:" + fvname)
-        	elif fvtype == "v":
-        		command = "./make.sh uvm " + fvname + " " + funcname
-        		file.write(":f:" + fvname)
-	
-			print 'regenerate ' + filename + ' with ' + fvname + ' and ' + funcname
-			timefile = open("record-time/time.txt", "a")
-			timefile.write("PROVBUILD start regenerate: \t" + str(time.time())  + "\n")
-			status, output = commands.getstatusoutput(command)
-			timefile.write("PROVBUILD end regenerate: \t" + str(time.time())  + "\n")
+	        	print 'regenerate ProvScript.py: ' + './make.sh g ' + funcname
+	        	timefile = open("record-time/time.txt", "a")
+	        	timefile.write("PROVBUILD start regenerate: \t" + str(time.time())  + "\n")
+	        	status, output = commands.getstatusoutput('./make.sh g ' + funcname)
+	        	timefile.write("PROVBUILD end regenerate: \t" + str(time.time())  + "\n")
 
-			timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
-			status, output = commands.getstatusoutput('./make.sh d')
-		else: 
-			errorflag = 2
+	        	timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
+	        	status, output = commands.getstatusoutput('./make.sh d')
+        	else: 
+        		errorflag = 1
 			break
+
 	timefile.write("PROVBUILD end runupdate: \t" + str(time.time())  + "\n")
 	if errorflag == 0:
 		return render_template('provbuild.html', 
@@ -243,15 +235,6 @@ def runupdate():
 						result=open("result.txt", "r").read(),
 						output=output, 
 						provscript=stripComments(open("ProvScript.py", "r").read()))
-	elif errorflag == 1:
-		return render_template('provbuild.html', 
-				user_file=filename, 
-				message="Regenerate Done, please change again",
-				content=open(filename, 'r').read(), 
-				status=status, 
-				result=open("result.txt", "r").read(),
-				output=output, 
-				provscript=stripComments(open("ProvScript.py", "r").read().split("relevant to your update", 1)[1]))
 	else:
 		return render_template('provbuild.html', 
 						user_file=filename, 
@@ -268,7 +251,7 @@ def runupdate():
 @app.route("/merge", methods=['POST'])
 def merge():
 	# update merge time
-	print 'merge'
+	print 'merge: ' + './make.sh m'
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start merge: \t" + str(time.time()) + "\n")
 	status, output = commands.getstatusoutput('./make.sh m')
@@ -290,7 +273,7 @@ def merge():
 
 	# generate provenance for new file
 	print 'now we generate new provenance'
-	print 'run ' + filename
+	print 'run ' + filename + ": " + './make.sh r ' + filename
 	timefile = open("record-time/time.txt", "a")
 	timefile.write("PROVBUILD start another run: \t" + str(time.time()) + "\n")
 	status, output = commands.getstatusoutput('./make.sh r ' + filename)
@@ -299,13 +282,13 @@ def merge():
 
 	newfile = open(filename, "r") 
 	return render_template('provbuild.html', 
-							user_file=filename, 
-							message="Merge Done", 
-							content=open(filename, 'r').read(),
-							status=status, 
-							result=open("result.txt", "r").read(),
-							output=output, 
-							provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")
+						user_file=filename, 
+						message="Merge Done", 
+						content=open(filename, 'r').read(),
+						status=status, 
+						result=open("result.txt", "r").read(),
+						output=output, 
+						provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")
 
 @app.route("/provfinish", methods=['POST'])
 def provfinish():
