@@ -40,6 +40,10 @@ case "$1" in
 		echo "Generate new file ..."
 		python __init__.py merge -t 1
 		;;
+	g)
+		echo "Regenerate ProvScript.py ..."
+		python __init__.py regen -t 1 -f "$2"
+		;;
 	*) 
 		echo "Invalid command"
 		;;
