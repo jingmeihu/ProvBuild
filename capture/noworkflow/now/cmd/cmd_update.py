@@ -62,10 +62,23 @@ def check_cond(line, result_functiondef):
     
 # given current line, check its function definition ID (or cond ID or loop ID)
 def check_def_id(line, result_functiondef):
+    ret_id = []
     for i in result_functiondef:
         if line >= i.first_line and line <= i.last_line:
-            return i.id
-    return 0
+            ret_id.append(i.id)
+    if len(ret_id) > 1:
+        tmp = ret_id[0]
+        for i in range(1, len(ret_id)):
+            cur = ret_id[i]
+            if result_functiondef[cur-1].first_line < result_functiondef[tmp-1].first_line:
+                tmp = cur
+            else:
+                continue
+        return tmp
+    elif len(ret_id) == 1:
+        return ret_id[0]
+    else:
+        return 0
 
 def check_related_call(name, result_variable):
     ret = []
