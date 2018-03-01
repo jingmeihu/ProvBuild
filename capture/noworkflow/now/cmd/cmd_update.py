@@ -260,8 +260,6 @@ class Update(Command):
             var_defs_str = var_defs_str + '###' + f + '\n'
         update_file.write(var_defs_str)
 
-        line_list = []
-
         ### first, we will deal with the function name input
         if args.funcname is not None:
             # try to find the function name when it appears
@@ -621,8 +619,8 @@ class Update(Command):
 
             if not more_func_name:
                 for i in result_functiondef:
-                    if i.name == more_func_name and i not in related_funcdef_list:
-                        related_func_calls.append(i)
+                    if i.name == more_func_name and i.id not in related_funcdef_list:
+                        related_funcdef_list.append(i.id)
             debug_print("related function definition list (with input)", related_funcdef_list, debug_mode)
 
             line_list = dict()
