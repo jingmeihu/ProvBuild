@@ -52,7 +52,7 @@ def normal():
 		file.write(user_name + ":" + user_file.filename + ":" + "NORMAL")
 
 		# initialize the first run, recall the time
-		print 'run ' + user_file.filename + ": " + 'python '	+ filename
+		print 'run ' + user_file.filename + ": " + 'python '	+ user_file.filename
 		timefile = open("record-time/time.txt", "a")
 		timefile.write(user_name + "\t" + user_file.filename + "\n")
 		timefile.write("NORMAL start first run: \t" + str(time.time()) + "\n")
