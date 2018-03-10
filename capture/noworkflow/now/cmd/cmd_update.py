@@ -487,7 +487,7 @@ class Update(Command):
             normal_should_be_added = []
             for i in func_params_remove:
                 func_params.remove(i) 
-                if i not in funcids:
+                if i not in funcids and result_variable[i-1].type == 'normal':
                     normal_should_be_added.append(i)
             debug_print("function param list (updated)", func_params, debug_mode)
             debug_print("normal variable (should be added later)", normal_should_be_added, debug_mode)
@@ -500,6 +500,8 @@ class Update(Command):
                     current_line = result_variable[v-1].line
                     belong_funcdef = check_def_id(current_line, result_functiondef)
                     if belong_funcdef != 0:
+                        print(current_line)
+                        print(v)
                         # include all the related function definition list.
                         if belong_funcdef not in related_funcdef_list:
                             related_funcdef_list.append(belong_funcdef)
@@ -884,7 +886,7 @@ class Update(Command):
             normal_should_be_added = []
             for i in func_params_remove:
                 func_params.remove(i) 
-                if i not in varids:
+                if i not in varids and result_variable[i-1].type == 'normal':
                     normal_should_be_added.append(i)
             debug_print("function param list (updated)", func_params, debug_mode)
             debug_print("normal variable (should be added later)", normal_should_be_added, debug_mode)
