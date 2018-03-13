@@ -4,31 +4,31 @@ case "$1" in
 	r)
 		# echo "Remove the .noworkflow folder ..."
 		rm -r .noworkflow
-		rm ProvScript.py
+		rm -f ProvScript.py
 		echo "The test file name is $2 ..."
 		python __init__.py run "$2"
 		;;
 	uf)
 		# echo "The trial id is 1 ..."
 		echo "The function name is $2 ..."
-		python __init__.py update -t 1 -fn "$2" --debug 1
+		python __init__.py update -t 1 -fn "$2" --debug 0
 		;;
 	ufm)
 		# echo "The trial id is 1 ..."
 		echo "The function name is $2 ..."
 		echo "Also add $3 ..."
-		python __init__.py update -t 1 -fn "$2" --morefunc "$3" --debug 1
+		python __init__.py update -t 1 -fn "$2" --morefunc "$3" --debug 0
 		;;
 	uv)
 		# echo "The trial id is 1 ..."
 		echo "The variable name is $2 ..."
-		python __init__.py update -t 1 -vn "$2" --debug 1
+		python __init__.py update -t 1 -vn "$2" --debug 0
 		;;
 	uvm)
 		# echo "The trial id is 1 ..."
 		echo "The variable name is $2 ..."
 		echo "Also add $3 ..."
-		python __init__.py update -t 1 -vn "$2" --morefunc "$3" --debug 1
+		python __init__.py update -t 1 -vn "$2" --morefunc "$3" --debug 0
 		;;
 	d)
 		echo "Compile ProvScript.py ..."
