@@ -12,23 +12,10 @@ import sqlalchemy
 
 from .command import Command, SmartFormatter
 from .cmd_run import Run
-from .cmd_debug import Debug
-from .cmd_list import List
-from .cmd_show import Show
-from .cmd_diff import Diff
-from .cmd_dataflow import Dataflow
-from .cmd_export import Export
-from .cmd_restore import Restore
-from .cmd_vis import Vis
-from .cmd_demo import Demo
-from .cmd_helper import Helper
-from .cmd_history import History
-from .cmd_schema import Schema
 from .cmd_update import Update
 from .cmd_runupdate import RunUpdate
 from .cmd_regen import ReGen
 from .cmd_merge import Merge
-from .cmd_datainput import DataInput
 from ..utils.io import print_msg
 
 
@@ -42,22 +29,9 @@ def main():
     subparsers = parser.add_subparsers()
     commands = [
         Run(),
-        Debug(),
-        List(),
-        Show(),
-        Diff(),
-        Dataflow(),
-        Export(),
-        Restore(),
-        Vis(),
-        Demo(),
-        Helper(),
-        History(),
-        Schema(),
         Update(),
         RunUpdate(),
         ReGen(),
-        #DataInput(),
         Merge()
     ]
     for cmd in commands:
@@ -79,21 +53,9 @@ def main():
 __all__ = [
     "Command",
     "Run",
-    "Debug",
-    "List",
-    "Show",
-    "Diff",
-    "Dataflow",
-    "Export",
-    "Restore",
-    "Vis",
-    "Demo",
-    "Helper",
-    "History",
     "main",
     "Update",
     "RunUpdate",
     "ReGen",
-    #"DataInput",
     "Merge"
 ]
