@@ -401,7 +401,7 @@ class Update(Command):
                         if r.type == "conditional":
                             debug_detail_print(">>> cond: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type), debug_mode)
                             cond_list.append(r.target_id)
-                            if result_variable[r.target_id-1].type == 'normal':
+                            if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in funcid_end and r.target_id not in funcids:
                                     funcid_end.append(r.target_id)
                             elif r.target_id not in funcids:
@@ -500,8 +500,6 @@ class Update(Command):
                     current_line = result_variable[v-1].line
                     belong_funcdef = check_def_id(current_line, result_functiondef)
                     if belong_funcdef != 0:
-                        print(current_line)
-                        print(v)
                         # include all the related function definition list.
                         if belong_funcdef not in related_funcdef_list:
                             related_funcdef_list.append(belong_funcdef)
@@ -798,7 +796,7 @@ class Update(Command):
                         if r.type == "conditional":
                             debug_detail_print(">>> cond: {} <- {}, type = {}".format(r.source_id, r.target_id, r.type), debug_mode)
                             cond_list.append(r.target_id)
-                            if result_variable[r.target_id-1].type == 'normal':
+                            if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in varid_end and r.target_id not in varids:
                                     varid_end.append(r.target_id)
                             elif r.target_id not in varids:
@@ -1101,17 +1099,6 @@ class Update(Command):
 
         ### function param setup
         update_file.write("\n# This is the param setup part - We are going to setup the function params - The following params will be assigned in your original script, but the values are not relevant to your update\n")
-        ### write param setup to file
-        for i in range(0,len(func_params)):
-            update_file.write(
-                "{} = {}\n".format(
-                    param_name[i],
-                    param_value[i]
-                    )
-                )
-
-        ### copy the script
-        update_file.write("\n# This is the ProvScript part\n")
 
         # This is the module part
         origin_filelines = origin_file.readlines()
@@ -1120,8 +1107,24 @@ class Update(Command):
             file_index = file_index + 1
             if line[0:6] == 'import' or line[0:4] == 'from':
                 ### haha, this is import module part!
-                ###update_file.write(line)
-                line_list[file_index] = 0
+                update_file.write(line)
+
+        ### write param setup to file
+        for i in range(0,len(func_params)):
+            string_value = str(param_value[i])
+            if "array" in string_value:
+                update_file.write("import numpy\n")
+                string_value = "numpy." + string_value
+            update_file.write(
+                "{} = {}\n".format(
+                    param_name[i],
+                    string_value
+                    )
+                )
+
+        ### copy the script
+        update_file.write("\n# This is the ProvScript part\n")
+
 
         # This is the execution part
         line_keylist = line_list.keys()

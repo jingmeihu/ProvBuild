@@ -65,7 +65,6 @@ class ReGen(Command):
         			for line in range(i.first_line, i.last_line + 1):
         				if line not in line_list:
         					line_list.append(line)
-        print(line_list)
 
         origin_file = open(trial.script, "r")
         prov_file = open("ProvScript.py", "r")
