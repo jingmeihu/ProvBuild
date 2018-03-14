@@ -650,6 +650,12 @@ class Update(Command):
                 if func_call_line not in line_list:
                     line_list[func_call_line] = 0
 
+            for i in graybox_funcid:
+                callid = result_variable[i-1].activation_id
+                act = result_functionactivation[callid-1]
+                if act.caller_id == 1 and act.line not in line_list:
+                    line_list[act.line] = 0
+
             # add normal variable
             for i in normal_funcid:
                 if i in func_params:
@@ -1067,6 +1073,12 @@ class Update(Command):
                 func_call_line = result_variable[i-1].line
                 if func_call_line not in line_list:
                     line_list[func_call_line] = 0
+
+            for i in graybox_varid:
+                callid = result_variable[i-1].activation_id
+                act = result_functionactivation[callid-1]
+                if act.caller_id == 1 and act.line not in line_list:
+                    line_list[act.line] = 0
 
             # add normal variable
             for i in normal_varid:
