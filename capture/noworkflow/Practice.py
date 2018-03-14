@@ -3,7 +3,7 @@ def func_1(var1, var2, var3):
 	for i in range(0, var3):
 		tmp += i
 	tmp -= func_2(var1, var2)
-	return local_1, local_2
+	return tmp
 
 def func_2(var1, var2): 
 	return var1 - var2 
@@ -30,7 +30,7 @@ f = func_3(1)
 b = func_3(20)
 c = func_3(30)
 d = func_3(40)
-b, c = func_1(a, b, 5) 
+b = func_1(a, b, 5) 
 e = func_2(b, c)
 if f % 2 == 0:
 	g = 0
