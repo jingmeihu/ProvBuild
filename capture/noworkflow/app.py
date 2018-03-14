@@ -265,7 +265,7 @@ def merge():
 	newfilename = "new-" + filename
 
 	# keep user's record in ./results/ directory
-	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + './results/' + username + '-' + filename)
+	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + './Task-results/' + username + '-' + filename)
 
 	# keep the current script for second try
 	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + filename)
