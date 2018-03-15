@@ -108,9 +108,10 @@ def finish():
 	filename = info[1] 
 
 	# keep the user's script and recall the script for next user
-	commands.getstatusoutput ('cp ' + filename + ' ' + './results/' + username + '-' + filename)
+	commands.getstatusoutput ('mv ' + filename + ' ' + './Task-results/' + username + '-' + filename)
+	commands.getstatusoutput ('mv ./record-time/time.txt ./Task-time/' + username + '-normaltime.txt')
 	# commands.getstatusoutput ('rm ' + filename)
-	commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
+	# commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
 
 	return render_template('index.html')
 
@@ -264,8 +265,8 @@ def merge():
 	# merge output - new script
 	newfilename = "new-" + filename
 
-	# keep user's record in ./results/ directory
-	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + './Task-results/' + username + '-' + filename)
+	# # keep user's record in ./results/ directory
+	# commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + './Task-results/' + username + '-' + filename)
 
 	# keep the current script for second try
 	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + filename)
@@ -303,9 +304,10 @@ def provfinish():
 	filename = info[1] 
 
 	# keep the user's script and recall the script for next user
-	commands.getstatusoutput ('cp ' + filename + ' ' + './results/' + username + '-' + filename)
+	commands.getstatusoutput ('mv ' + filename + ' ' + './Task-results/' + username + '-' + filename)
+	commands.getstatusoutput ('mv ./record-time/time.txt ./Task-time/' + username + '-provtime.txt')
 	# commands.getstatusoutput ('rm ' + filename)
-	commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
+	# commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
 
 	return render_template('index.html')
 
