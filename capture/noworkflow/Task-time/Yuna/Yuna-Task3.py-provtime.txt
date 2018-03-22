@@ -1,0 +1,27 @@
+Yuna	Task3.py
+PROVBUILD start first run: 	1521582058.94
+PROVBUILD end first run and we start here: 	1521582143.89
+Yuna	Task3.py
+PROVBUILD start first run: 	1521582143.9
+PROVBUILD end first run and we start here: 	1521582223.07
+PROVBUILD start update: 	1521582256.61
+PROVBUILD end update: 	1521582258.3
+PROVBUILD start runupdate: 	1521582334.64
+PROVBUILD end runupdate (need regeneration): 	1521582335.04
+PROVBUILD end runupdate: 	1521582335.04
+PROVBUILD start update: 	1521582352.65
+PROVBUILD end update: 	1521582354.19
+PROVBUILD start update: 	1521582436.06
+PROVBUILD end update: 	1521582437.73
+PROVBUILD start runupdate: 	1521582496.7
+PROVBUILD end runupdate (need regeneration): 	1521582497.18
+PROVBUILD start regenerate: 	1521582497.18
+PROVBUILD end regenerate: 	1521582498.68
+PROVBUILD start runupdate: 	1521582498.68
+PROVBUILD end runupdate: 	1521582499.1
+PROVBUILD start merge: 	1521582509.76
+PROVBUILD end merge: 	1521582511.25
+PROVBUILD start another run: 	1521582511.26
+PROVBUILD end another run: 	1521582590.13
+PROVBUILD finish: 	1521582591.69
+--------------------------------------

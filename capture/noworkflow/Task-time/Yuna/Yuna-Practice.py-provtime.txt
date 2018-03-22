@@ -1,0 +1,17 @@
+Yuna	Practice.py
+PROVBUILD start first run: 	1521580571.99
+PROVBUILD end first run and we start here: 	1521580578.01
+PROVBUILD start update: 	1521580649.68
+PROVBUILD end update: 	1521580651.49
+PROVBUILD start runupdate: 	1521580669.51
+PROVBUILD end runupdate: 	1521580669.58
+PROVBUILD start merge: 	1521580679.02
+PROVBUILD end merge: 	1521580680.8
+PROVBUILD start another run: 	1521580680.83
+PROVBUILD end another run: 	1521580683.57
+PROVBUILD start merge: 	1521580683.57
+PROVBUILD end merge: 	1521580685.44
+PROVBUILD start another run: 	1521580685.45
+PROVBUILD end another run: 	1521580688.0
+PROVBUILD finish: 	1521580693.02
+--------------------------------------

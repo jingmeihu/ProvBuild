@@ -1,0 +1,11 @@
+JZ	Task4.py
+NORMAL start first run: 	1521589128.84
+NORMAL end first run and we start here: 	1521589129.47
+NORMAL start run: 	1521589671.98
+NORMAL end run: 	1521589672.34
+NORMAL start run: 	1521589738.93
+NORMAL end run: 	1521589739.1
+NORMAL start run: 	1521589752.96
+NORMAL end run: 	1521589753.13
+NORMAL finish: 	1521589764.12
+--------------------------------------

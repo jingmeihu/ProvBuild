@@ -1,0 +1,9 @@
+Yuna	Task2.py
+NORMAL start first run: 	1521581650.8
+NORMAL end first run and we start here: 	1521581650.85
+NORMAL start run: 	1521581773.77
+NORMAL end run: 	1521581773.82
+NORMAL start run: 	1521581867.15
+NORMAL end run: 	1521581867.19
+NORMAL finish: 	1521581870.99
+--------------------------------------

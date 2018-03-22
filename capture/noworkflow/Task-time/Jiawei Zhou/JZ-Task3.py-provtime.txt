@@ -1,0 +1,43 @@
+JZ	Task3.py
+PROVBUILD start first run: 	1521590067.99
+PROVBUILD end first run and we start here: 	1521590146.94
+PROVBUILD start update: 	1521590185.1
+PROVBUILD end update: 	1521590186.77
+PROVBUILD start update: 	1521590239.16
+PROVBUILD end update: 	1521590240.19
+PROVBUILD start runupdate: 	1521590312.8
+PROVBUILD end runupdate (need regeneration): 	1521590313.19
+PROVBUILD end runupdate: 	1521590313.19
+PROVBUILD start update: 	1521590322.11
+PROVBUILD end update: 	1521590323.71
+PROVBUILD start update: 	1521590323.72
+PROVBUILD end update: 	1521590324.73
+PROVBUILD start runupdate: 	1521590340.46
+PROVBUILD end runupdate (need regeneration): 	1521590340.78
+PROVBUILD end runupdate: 	1521590340.78
+PROVBUILD start update: 	1521590349.36
+PROVBUILD end update: 	1521590350.37
+PROVBUILD start update: 	1521590361.78
+PROVBUILD end update: 	1521590362.79
+PROVBUILD start update: 	1521590463.39
+PROVBUILD end update: 	1521590464.46
+PROVBUILD start update: 	1521590531.49
+PROVBUILD end update: 	1521590532.54
+PROVBUILD start runupdate: 	1521590586.69
+PROVBUILD end runupdate: 	1521590587.02
+PROVBUILD start update: 	1521590598.28
+PROVBUILD end update: 	1521590599.26
+PROVBUILD start update: 	1521590616.34
+PROVBUILD end update: 	1521590617.39
+PROVBUILD start runupdate: 	1521590635.7
+PROVBUILD end runupdate (need regeneration): 	1521590636.06
+PROVBUILD start regenerate: 	1521590636.06
+PROVBUILD end regenerate: 	1521590637.03
+PROVBUILD start runupdate: 	1521590637.03
+PROVBUILD end runupdate: 	1521590637.38
+PROVBUILD start merge: 	1521590642.56
+PROVBUILD end merge: 	1521590643.5
+PROVBUILD start another run: 	1521590643.51
+PROVBUILD end another run: 	1521590719.74
+PROVBUILD finish: 	1521592700.68
+--------------------------------------
