@@ -86,7 +86,6 @@ def readxyz(filename):
                 atomnames.append(words[0])
                 xyzarr[i][0] = float(words[1])
                 xyzarr[i][1] = float(words[2])
-                xyzarr[i][2] = float(words[3])
                 i = i + 1
     return (xyzarr, atomnames)
 
@@ -180,7 +179,6 @@ def output_write(npart, rlist, alist, dlist):
 
 def gen_zmat(xyzarr, distmat, atomnames):
 	npart, ncoord = xyzarr.shape
-	npart -= 1
 	rlist = []
 	alist = []
 	dlist = []
