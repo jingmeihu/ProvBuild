@@ -11,7 +11,7 @@ case "$1" in
 	uf)
 		# echo "The trial id is 1 ..."
 		echo "The function name is $2 ..."
-		python __init__.py update -t 1 -fn "$2" --debug 1
+		python __init__.py update -t 1 -fn "$2" --debug 0
 		;;
 	ufm)
 		# echo "The trial id is 1 ..."
@@ -22,7 +22,7 @@ case "$1" in
 	uv)
 		# echo "The trial id is 1 ..."
 		echo "The variable name is $2 ..."
-		python __init__.py update -t 1 -vn "$2" --debug 1
+		python __init__.py update -t 1 -vn "$2" --debug 0
 		;;
 	uvm)
 		# echo "The trial id is 1 ..."

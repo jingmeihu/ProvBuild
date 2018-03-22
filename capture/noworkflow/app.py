@@ -75,8 +75,9 @@ def runnormal():
 	filename = info[1] 
 
 	f= open(filename, 'w')
-	code = request.form['script'].replace("&gt;", ">").replace("&lt;", "<").replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
+	code = request.form['script'].replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
 	finalcode = cleanhtml(code)
+	finalcode = finalcode.replace("&gt;", ">").replace("&lt;", "<")
 	f.write(finalcode)
 	f.close()
 
@@ -109,7 +110,7 @@ def finish():
 
 	# keep the user's script and recall the script for next user
 	commands.getstatusoutput ('mv ' + filename + ' ' + './Task-results/' + username + '-' + filename)
-	commands.getstatusoutput ('mv ./record-time/time.txt ./Task-time/' + username + '-normaltime.txt')
+	commands.getstatusoutput ('mv ./record-time/time.txt ./Task-time/' + username + '-' + filename + '-normaltime.txt')
 	# commands.getstatusoutput ('rm ' + filename)
 	# commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
 
@@ -195,8 +196,9 @@ def runupdate():
 	fvname = info[-1]
 
 	f = open('ProvScript.py', 'w')
-	code = request.form['provscript'].replace("&gt;", ">").replace("&lt;", "<").replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
+	code = request.form['provscript'].replace("<br>", "\n").replace("<div>", "\n").replace("</div>", "\n")
 	finalcode = cleanhtml(code)
+	finalcode = finalcode.replace("&gt;", ">").replace("&lt;", "<")
 	f.write(finalcode)
 	f.close()
 
@@ -305,7 +307,7 @@ def provfinish():
 
 	# keep the user's script and recall the script for next user
 	commands.getstatusoutput ('mv ' + filename + ' ' + './Task-results/' + username + '-' + filename)
-	commands.getstatusoutput ('mv ./record-time/time.txt ./Task-time/' + username + '-provtime.txt')
+	commands.getstatusoutput ('mv ./record-time/time.txt ./Task-time/' + username  + '-' + filename + '-provtime.txt')
 	# commands.getstatusoutput ('rm ' + filename)
 	# commands.getstatusoutput ('cp ' + './examplebackup/' + filename + ' ' + filename)
 
