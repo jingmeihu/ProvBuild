@@ -343,6 +343,9 @@ class Update(Command):
                         if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
                             debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                             pass
+                        elif result_variable[r.source_id-1].type == '--blackbox--':
+                            debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
+                            pass
                         else:
                             funcid_copy.append(r.source_id)
                             if result_variable[r.source_id-1].type == 'call' and result_variable[r.source_id-1].activation_id == 1:
@@ -361,13 +364,13 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == i:
                         debug_detail_print(">>> call: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        if r.type == 'return':
+                        if r.type == 'return' and r.target_id not in funcid_calls:
                             funcid_calls.append(r.target_id)
                         elif r.type == 'parameter':
                             if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in funcid_end and r.target_id not in funcid_copy:
                                     funcid_end.append(r.target_id)
-                            else:
+                            elif r.target_id not in funcid_calls:
                                 funcid_calls.append(r.target_id)
                         elif r.type == 'direct':
                             if result_variable[r.target_id-1].type == 'function definition':
@@ -377,9 +380,9 @@ class Update(Command):
                             elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in funcid_end and r.target_id not in funcid_copy:
                                     funcid_end.append(r.target_id)
-                            else:
+                            elif r.target_id not in funcid_calls:
                                 funcid_calls.append(r.target_id)
-                        else:
+                        elif r.target_id not in funcid_calls:
                             funcid_calls.append(r.target_id)
             debug_print("function ID related call list (updated source_id)", funcid_calls, debug_mode)
             debug_print("function ID end list (updated source_id)", funcid_end, debug_mode)
@@ -735,6 +738,10 @@ class Update(Command):
                         if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
                             debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                             pass
+                        elif result_variable[r.source_id-1].type == '--blackbox--':
+                            debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
+                            pass
+
                         else:
                             if result_variable[r.source_id-1].type == 'normal' and result_variable[r.source_id-1].activation_id == 1:
                                 varid_copy.append(r.source_id)
@@ -759,13 +766,13 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == i:
                         debug_detail_print(">>> call: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        if r.type == 'return':
+                        if r.type == 'return' and r.target_id not in varid_calls:
                             varid_calls.append(r.target_id)
                         elif r.type == 'parameter':
                             if result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in varid_end and r.target_id not in varid_copy:
                                     varid_end.append(r.target_id)
-                            else:
+                            elif r.target_id not in varid_calls:
                                 varid_calls.append(r.target_id)
                         elif r.type == 'direct':
                             if result_variable[r.target_id-1].type == 'function definition':
@@ -775,9 +782,9 @@ class Update(Command):
                             elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                                 if r.target_id not in varid_end and r.target_id not in varid_copy:
                                     varid_end.append(r.target_id)
-                            else: 
+                            elif r.target_id not in varid_calls: 
                                 varid_calls.append(r.target_id)
-                        else:
+                        elif r.target_id not in varid_calls:
                             varid_calls.append(r.target_id)
             debug_print("variable ID related call list (updated call)", varid_calls, debug_mode)
             debug_print("variable ID end list (updated call)", varid_end, debug_mode)
@@ -1110,7 +1117,7 @@ class Update(Command):
             param_value.append(tmp.value)
 
         ### function param setup
-        update_file.write("\n# This is the param setup part - We are going to setup the function params - The following params will be assigned in your original script, but the values are not relevant to your update\n")
+        update_file.write("\n# This is the parameter setup part\n# - We are going to setup the function parameters to make this script runnable\n# - Change the following values is useless\n")
 
         # This is the module part
         origin_filelines = origin_file.readlines()

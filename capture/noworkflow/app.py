@@ -134,6 +134,12 @@ def provbuild():
 		status, output = commands.getstatusoutput('./make.sh r ' + user_file.filename)
 		timefile.write("PROVBUILD end first run and we start here: \t" + str(time.time()) + "\n")
 
+		print 'update ' + user_file.filename + ": " + './make.sh uf output_write'
+		timefile = open("record-time/time.txt", "a")
+		timefile.write("PROVBUILD initial output_write: \t" + str(time.time()) + "\n")
+		status, output = commands.getstatusoutput('./make.sh uf output_write')
+		timefile.write("PROVBUILD end initial output_write: \t" + str(time.time()) + "\n")
+
 		return render_template('provbuild.html', 
 		 					user_file=user_file.filename, 
 		 					message="Initial Done", 
@@ -141,7 +147,7 @@ def provbuild():
 		 					status=status, 
 		 					result=open("result.txt", "r").read(),
 		 					output=output, 
-		 					provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")
+		 					provscript=stripComments(open("ProvScript.py", "r").read().split("# This is the parameter setup part", 1)[1]))
 
 @app.route("/update", methods=['POST'])
 def update():
@@ -184,7 +190,7 @@ def update():
 					status=status, 
 					result=open("result.txt", "r").read(),
 					output=output, 
-					provscript=stripComments(open("ProvScript.py", "r").read().split("relevant to your update", 1)[1]))
+					provscript=stripComments(open("ProvScript.py", "r").read().split("# This is the parameter setup part", 1)[1]))
 
 @app.route("/runupdate", methods=['POST'])
 def runupdate():
@@ -221,6 +227,9 @@ def runupdate():
 	        	timefile.write("PROVBUILD start regenerate: \t" + str(time.time())  + "\n")
 	        	status, output = commands.getstatusoutput('./make.sh g ' + funcname)
 	        	timefile.write("PROVBUILD end regenerate: \t" + str(time.time())  + "\n")
+	        	if "UNFOUND" in output:
+	        		errorflag = 1
+	        		break
 
 	        	timefile.write("PROVBUILD start runupdate: \t" + str(time.time())  + "\n")
 	        	status, output = commands.getstatusoutput('./make.sh d')

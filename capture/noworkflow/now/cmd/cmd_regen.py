@@ -59,12 +59,16 @@ class ReGen(Command):
             result_functiondef = function_def.pull_content(trial.id)
 
         line_list = []
+        flag = 0
         if more_func_name is not None:
         	for i in result_functiondef:
         		if i.name == more_func_name:
+                                flag = 1
         			for line in range(i.first_line, i.last_line + 1):
         				if line not in line_list:
         					line_list.append(line)
+        if flag == 0:
+            print("UNFOUND")
 
         origin_file = open(trial.script, "r")
         prov_file = open("ProvScript.py", "r")
