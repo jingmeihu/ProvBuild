@@ -60,13 +60,16 @@ data_a1, data_a2 = file_read(data_input_a)
 y = addone(18)
 data_b1, data_b2 = file_read(data_input_b)
 
-data_add = add(data_a1, data_b1)
-data_double = double(data_a2) + double(data_b2)
-
 z = addone(29) 
+
+for i in range(1,5):
+    y += i
 res = comp(x, y, z)
 
+data_add = add(data_a1, data_b1)
 t = get_data(data_add)
+
+data_double = add(double(data_a2),double(data_b2))
 p = get_data(data_double)
 
 output_write(t, p, res)
