@@ -8,7 +8,7 @@ from __future__ import (absolute_import, print_function,
 
 from sqlalchemy import Column, Integer, Text, select, bindparam
 
-from .. import relational, content, persistence_config
+from .. import relational
 
 from .base import AlchemyProxy, proxy_class, backref_many, is_none
 
@@ -38,7 +38,7 @@ class Module(AlchemyProxy):
         return result
 
     def __key(self):
-        return (self.name, self.version, self.path, self.code_hash)
+        return (self.name, self.version, self.code_hash)
 
     def __hash__(self):
         return hash(self.__key())

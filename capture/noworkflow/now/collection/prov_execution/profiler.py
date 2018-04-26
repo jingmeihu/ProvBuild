@@ -11,6 +11,8 @@ import sys
 import os
 import traceback
 import time
+import io
+import codecs
 
 from datetime import datetime
 
@@ -21,6 +23,42 @@ from ...utils.cross_version import builtins
 from .base import ExecutionProvider
 from .argument_captors import ProfilerArgumentCaptor
 
+
+MODES = {
+    # All
+    "O_RDONLY": "r",
+    "O_WRONLY": "w",
+    "O_RDWR": "+",
+    "O_APPEND": "a",
+    "O_CREAT": None,
+    "O_TRUNC": None,
+    # Linux
+    "O_DSYNC": None,
+    "O_RSYNC": None,
+    "O_SYNC": None,
+    "O_NDELAY": None,
+    "O_NONBLOCK": None,
+    "O_NOCTTY": None,
+    "O_CLOEXEC": None,
+    # Windowns
+    "O_BINARY": None,
+    "O_NOINHERIT": None,
+    "O_SHORT_LIVED": None,
+    "O_TEMPORARY": None,
+    "O_RANDOM": None,
+    "O_SEQUENTIAL": None,
+    "O_TEXT": None,
+    # Extensions that must be defined by the C library
+    "O_ASYNC": None,
+    "O_DIRECT": None,
+    "O_DIRECTORY": None,
+    "O_NOFOLLOW": None,
+    "O_NOATIME": None,
+    "O_PATH": None,
+    "O_TMPFILE": None,
+    "O_SHLOCK": None,
+    "O_EXLOCK": None,
+}
 
 class Profiler(ExecutionProvider):                                               # pylint: disable=too-many-instance-attributes
     """Profiler
@@ -33,7 +71,13 @@ class Profiler(ExecutionProvider):                                              
         super(Profiler, self).__init__(*args)
         # Open
         content.std_open = open
+        content.io_open = io.open
+        content.codecs_open = codecs.open
+        content.os_open = os.open
         builtins.open = self.new_open(open)
+        io.open = self.new_open(io.open)
+        codecs.open = self.new_open(codecs.open)
+        os.open = self.new_open(os.open, osopen=True)
 
         # the number of user functions activated
         #   (starts with -1 to compensate the first call to the script itself)
@@ -99,7 +143,7 @@ class Profiler(ExecutionProvider):                                              
         """Return activation that called current activation"""
         return self.activations[self.activation_stack[-2]]
 
-    def new_open(self, old_open):
+    def new_open(self, old_open, osopen=False):
         """Wrap the open builtin function to register file access"""
         def open(name, *args, **kwargs):                                         # pylint: disable=redefined-builtin
             """Open file and add it to file_accesses"""
@@ -110,7 +154,7 @@ class Profiler(ExecutionProvider):                                              
 
                 if os.path.exists(name):
                     # Read previous content if file exists
-                    with old_open(name, "rb") as fil:
+                    with content.std_open(name, "rb") as fil:
                         file_access.content_hash_before = content.put(
                             fil.read()
                         )
@@ -121,7 +165,16 @@ class Profiler(ExecutionProvider):                                              
                 if len(args) > 1:
                     file_access.buffering = args[1]
                 elif len(args) > 0:
-                    file_access.mode = args[0]
+                    mode = args[0]
+                    if osopen:
+                        mode = ""
+                        for key, value in MODES.items():
+                            flag = getattr(os, key, 0)
+                            if args[0] & flag:
+                                value = value or "({})".format(key)
+                                mode += value
+
+                    file_access.mode = mode
 
                 self.add_file_access(file_access)
             return old_open(name, *args, **kwargs)

@@ -272,16 +272,6 @@ class Metascript(object):                                                       
         persistence_config.connect(self.dir)
         return self
 
-    # def _read_args_runupdate(self, args):
-    #     """Read cmd line argument object"""
-    #     # ToDo #54: add serializer param
-    #     self.serialize = get_serializer(args)
-    #     self.verbose = args.verbose
-
-    #     io.print_msg("setting up local provenance store")
-    #     persistence_config.connect(self.dir)
-    #     return self
-
     def read_restore_args(self, args):
         """Read cmd line argument object for 'now restore'"""
         self.bypass_modules = True
