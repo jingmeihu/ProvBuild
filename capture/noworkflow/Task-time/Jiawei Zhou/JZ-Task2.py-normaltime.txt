@@ -1,7 +1,0 @@
-JZ	Task2.py
-NORMAL start first run: 	1521587715.37
-NORMAL end first run and we start here: 	1521587715.47
-NORMAL start run: 	1521588135.01
-NORMAL end run: 	1521588135.05
-NORMAL finish: 	1521588147.31
---------------------------------------
