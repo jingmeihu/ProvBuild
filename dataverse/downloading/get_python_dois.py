@@ -4,8 +4,8 @@ import re
 import os
 
 # defining some constants
-python_file_query = "fileContentType:text/x-python-script"
-dataverse_key = "22474fc6-e76b-4196-8249-41d8f0c0eeda"
+python_file_query = "fileType:text/x-python-script"
+dataverse_key = "3b930718-55c3-420f-9ab1-82f0f720c194"
 
 # initialize variables to store current state of scraping
 page_num = 0
@@ -45,9 +45,9 @@ while True:
 python_dois = list(set(python_dois))
 
 # remove old output file if one exists
-if os.path.exists('python_dois_sub.txt'):   
-	os.remove('python_dois_sub.txt')
+if os.path.exists('python_dois.txt'):   
+	os.remove('python_dois.txt')
 
 # write dois to file, one-per-line
-with open('python_dois_sub.txt', 'a') as myfile:
+with open('python_dois.txt', 'a') as myfile:
 	map(myfile.write, python_dois) 
