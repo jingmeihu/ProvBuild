@@ -47,6 +47,10 @@ def normal():
 		user_file.save(secure_filename(user_file.filename))
 
 		user_name = request.form['username']
+		
+		status, output = commands.getstatusoutput('mkdir -p record-time')
+		status, output = commands.getstatusoutput('mkdir -p Task-results')
+		status, output = commands.getstatusoutput('mkdir -p Task-time')
 
 		file = open("record-time/session.txt", "w")
 		file.write(user_name + ":" + user_file.filename + ":" + "NORMAL")
@@ -123,6 +127,10 @@ def provbuild():
 		user_file.save(secure_filename(user_file.filename))
 
 		user_name = request.form['username']
+		
+		status, output = commands.getstatusoutput('mkdir -p record-time')
+		status, output = commands.getstatusoutput('mkdir -p Task-results')
+		status, output = commands.getstatusoutput('mkdir -p Task-time')
 
 		file = open("record-time/session.txt", "w")
 		file.write(user_name + ":" + user_file.filename + ":" + "PROVBUILD")
