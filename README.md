@@ -1,5 +1,8 @@
 # ProvBuild
 
+## Dependencies
+use python `pip` to install the following packages: `flask`, `sqlalchemy`, `pyposast`, `future`, `apted`
+
 ## how to run it manually
 1) cd into noworkflow directory:
 
