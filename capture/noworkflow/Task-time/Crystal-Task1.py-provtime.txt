@@ -1,0 +1,15 @@
+Crystal	Task1.py
+PROVBUILD start first run: 	1533661201.95
+PROVBUILD end first run and we start here: 	1533661203.35
+PROVBUILD initial output_write: 	1533661203.35
+PROVBUILD end initial output_write: 	1533661203.65
+PROVBUILD start update: 	1533661216.79
+PROVBUILD end update: 	1533661217.12
+PROVBUILD start runupdate: 	1533661220.45
+PROVBUILD end runupdate: 	1533661220.45
+PROVBUILD start merge: 	1533661221.98
+PROVBUILD end merge: 	1533661222.28
+PROVBUILD start another run: 	1533661222.28
+PROVBUILD end another run: 	1533661223.58
+PROVBUILD finish: 	1533661225.78
+--------------------------------------

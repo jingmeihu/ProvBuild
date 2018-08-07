@@ -10,8 +10,8 @@ session.txt
 time.txt
 /capture/noworkflow/results/
 .idea/
-record-time/
-Task-results/
-Task-time/
+record-time/*.txt
+Task-results/*.py
+Task-time/*.txt
 Task/
 dataverse_data/
