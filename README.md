@@ -1,6 +1,18 @@
 # ProvBuild
 
-## how to run it manually
+## Dependencies
+use python `pip` to install the following packages: `flask`, `sqlalchemy`, `pyposast`, `future`, `apted`
+
+## How to run it
+1) cd into noworkflow directory:
+
+`cd capture/noworkflow`
+
+2) run: (it will start a webpage and you can upload your script)
+
+`python app.py`
+
+## How to run it manually - 1
 1) cd into noworkflow directory:
 
 `cd capture/noworkflow`
@@ -30,7 +42,7 @@
 we name the new script _new-test.py_ and store it in the same directory.
 
 
-## how to run it automatically
+## How to run it manually -2
 1) cd into noworkflow directory:
 
 `cd capture/noworkflow`
