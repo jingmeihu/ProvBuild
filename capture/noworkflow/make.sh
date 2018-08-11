@@ -3,7 +3,7 @@
 case "$1" in
 	r)
 		# echo "Remove the .noworkflow folder ..."
-		rm -r .noworkflow
+		rm -rf .noworkflow
 		rm -f ProvScript.py
 		echo "The test file name is $2 ..."
 		python __init__.py run "$2"

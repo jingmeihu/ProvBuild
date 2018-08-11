@@ -302,10 +302,10 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == f and r.target_id not in funcid_copy:
                         debug_detail_print(">>> target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1:
-                            debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                            pass
-                        elif result_variable[r.target_id-1].type == 'function definition':
+                        # if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1:
+                        #     debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
+                        #     pass
+                        if result_variable[r.target_id-1].type == 'function definition':
                             pass
                         elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                             if 'function' in result_variable[r.target_id-1].value:
@@ -340,10 +340,10 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in funcid_copy:
                         debug_detail_print(">>> source: {} -> {}, type = {}, source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
-                            debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                            pass
-                        elif result_variable[r.source_id-1].type == '--blackbox--':
+                        # if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
+                        #     debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
+                        #     pass
+                        if result_variable[r.source_id-1].type == '--blackbox--':
                             debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                             pass
                         else:
@@ -697,10 +697,10 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v and r.target_id not in varid_copy:
                         debug_detail_print(">>> target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1: # and result_variable[r.target_id-1].type != 'normal':
-                            debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                            pass
-                        elif result_variable[r.target_id-1].type == 'function definition':
+                        # if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1: # and result_variable[r.target_id-1].type != 'normal':
+                        #     debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
+                        #     pass
+                        if result_variable[r.target_id-1].type == 'function definition':
                             pass
                         elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
                             if 'function' in result_variable[r.target_id-1].value:
@@ -735,10 +735,10 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in varid_copy:
                         debug_detail_print(">>> source: {} -> {}, type = {}, source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
-                            debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                            pass
-                        elif result_variable[r.source_id-1].type == '--blackbox--':
+                        # if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
+                        #     debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
+                        #     pass
+                        if result_variable[r.source_id-1].type == '--blackbox--':
                             debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                             pass
 
