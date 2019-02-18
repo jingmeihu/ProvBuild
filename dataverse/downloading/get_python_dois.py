@@ -5,7 +5,7 @@ import os
 
 # defining some constants
 python_file_query = "fileType:text/x-python-script"
-dataverse_key = "3b930718-55c3-420f-9ab1-82f0f720c194"
+dataverse_key = "" # enter your dataverse API here
 
 # initialize variables to store current state of scraping
 page_num = 0
