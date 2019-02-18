@@ -36,7 +36,7 @@ for i in content:
 		print(i)
 		# get DOI from file
 		doi = i
-		dataverse_key = "3b930718-55c3-420f-9ab1-82f0f720c194" # example: "3b0777ab-4af9-4b3a-971e-5c84ac75926b"
+		dataverse_key = "" # enter your dataverse API here
 
 		try:
 			# query the dataverse API for all the files in a dataverse
