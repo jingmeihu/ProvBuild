@@ -84,7 +84,7 @@ def check_related_call(name, result_variable):
     ret = []
     name_length = len(name)
     for r in result_variable:
-        if r.name[0:name_length] == name[0:name_length] and r.type == 'call': # and r.activation_id == 1:
+        if r.name[0:name_length] == name[0:name_length] and r.type == 'call':
             ret.append(r.id)
     return ret
 
@@ -154,28 +154,16 @@ class Update(Command):
         more_func_name = args.morefunc
         debug_print("undefined function name", more_func_name, debug_mode)
 
-
-        # print ('Before we start, let me be clear:')
-        # print ('You are dealing with Trial {} '.format(args.trial))
-        # if args.funcname is not None:
-        #     print ('You are dealing with Function {} '.format(args.funcname))
-        # else:
-        #     print ('You are dealing with Variable {} '.format(args.varname))
-
-        # for trial table
+        # trial table
         result_trial = trial.pull_content(trial.id)
-        # metascript.trial.push_content(metascript.trial_id, result_trial)
         trial_table = trial.__table__
-        ### print ('Step 0: Trial prov: {}'.format(trial_table))
 
-        # definition provenance part
-        # for function_def
+        # definition provenance
+        # function_def table
         function_def = FunctionDef(trial_ref=args.trial)
         if function_def is not None:
             result_functiondef = function_def.pull_content(trial.id)
-            # function_def.push_content(metascript.trial_id, result_functiondef)
             function_def_table = function_def.__table__
-            ### print ('Step 1: Definition prov: {}'.format(function_def_table))
 
             # collect all the function definitions
             func_defs = []
@@ -189,14 +177,11 @@ class Update(Command):
             if args.funcname not in func_defs:
                 print ("given function doesn't exist!")
                 return
-        #print(func_defs)
 
-        # for variable
+        # variable table
         variable = Variable(trial_ref=args.trial)
         result_variable = variable.pull_content(trial.id)
-        # variable.push_content(metascript.trial_id, result_variable)
         variable_table = variable.__table__
-        ### print ('Step 4: Variable prov: {}'.format(variable_table))
 
         # get the global variable declarations here
         var_defs = []
@@ -212,37 +197,29 @@ class Update(Command):
             if args.varname not in var_defs:
                 print ("given variable doesn't exist!")
                 return
-        #print(var_defs)
 
-        # for variable_dependency
+        # variable_dependency table
         variable_dependency = VariableDependency(trial_ref=args.trial)
         result_variabledependency = variable_dependency.pull_content(trial.id)
-        # variable_dependency.push_content(metascript.trial_id, result_variabledependency)
         variable_dependency_table = variable_dependency.__table__
-        ### print ('Step 3: Variable Dependency prov: {}'.format(variable_dependency_table))
 
-        # for variable_usage
+        # variable_usage table
         variable_usage = VariableUsage(trial_ref=args.trial)
         result_variableusage = variable_usage.pull_content(trial.id)
-        # variable_usage.push_content(metascript.trial_id, result_variableusage)
         variable_usage_table = variable_usage.__table__
-        # print ('Step 3.4: we have done with {} table'.format(variable_usage_table))
 
-        # for function_activation
-
+        # function_activation table
         function_activation = Activation(trial_ref=args.trial)
         if function_activation is not None:
             result_functionactivation = function_activation.pull_content(trial.id)
-            # function_activation.push_content(metascript.trial_id, new_result_functionactivation)
             function_activation_table = function_activation.__table__
-            # print ('Step 4: Execution prov: {}'.format(function_activation_table))
         else:
             result_functionactivation = []
-        ### if the input is function name, we are dealing with function
+        # if the input is function name, we are dealing with function
         if args.funcname is not None:
             given_funcname = args.funcname
             debug_print("given function name", given_funcname)
-        ### this time, we are dealing with variable instead of function
+        # this time, we are dealing with variable instead of function
         else:
             given_varname = args.varname
             debug_print("given variable name", given_varname)
@@ -252,7 +229,6 @@ class Update(Command):
         # print("So, now we will start to create a ProvScript for you")
         #########################################
 
-        # print ('The origin script name is: {}'.format(metascript.name))
         origin_file = open(metascript.name, "r")
         ### open a new file to store sub script
         update_file = open("ProvScript.py", "w")
@@ -302,9 +278,6 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == f and r.target_id not in funcid_copy:
                         debug_detail_print(">>> target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        # if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1:
-                        #     debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        #     pass
                         if result_variable[r.target_id-1].type == 'function definition':
                             pass
                         elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
@@ -316,9 +289,6 @@ class Update(Command):
                             if r.target_id not in funcid_end:
                                 funcid_end.append(r.target_id)
                         else:
-                            # if result_variable[r.target_id-1].name == 'return' and result_variable[r.target_id-2].name == '--graybox--':
-                            #     debug_detail_print ("return {}, we add graybox {}".format(r.target_id, r.target_id-1), debug_mode)
-                            #     funcid_copy.append(r.target_id-1)
                             funcid_copy.append(r.target_id)
                             if result_variable[r.target_id-1].type == 'call' and result_variable[r.target_id-1].activation_id == 1:
                                 same_call = check_related_call_general(result_variable[r.target_id-1].name, result_variable[r.target_id-1].line, result_variable)
@@ -333,16 +303,12 @@ class Update(Command):
             debug_print("function ID sub list(updated target_id)", funcid_copy, debug_mode)
             debug_print("function ID end list (updated target_id)", funcid_end, debug_mode)
             debug_print("function ID related call list (updated target_id)", funcid_calls, debug_mode)
-            # funcid_copy += funcid_end
             debug_print("function ID list (updated target_id)", funcid_copy, debug_mode)
 
             for v in funcid_copy:
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in funcid_copy:
                         debug_detail_print(">>> source: {} -> {}, type = {}, source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        # if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
-                        #     debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        #     pass
                         if result_variable[r.source_id-1].type == '--blackbox--':
                             debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                             pass
@@ -387,8 +353,6 @@ class Update(Command):
             debug_print("function ID related call list (updated source_id)", funcid_calls, debug_mode)
             debug_print("function ID end list (updated source_id)", funcid_end, debug_mode)
             debug_print("function ID list (updated source_id)", funcid_copy, debug_mode)
-            # for i in funcid_end:
-            #     funcid_copy.remove(i)
             funcids = funcid_copy
 
             loop_list = []
@@ -443,12 +407,10 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v:
                         if r.type == "parameter":
-                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params: # and r.target_id not in funcids:
+                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params:
                                 func_params.append(r.target_id)
             debug_print("function ID list (graybox updated)", funcids, debug_mode)
             debug_print("function param list", func_params, debug_mode)
-            # func_params += funcid_end
-            # func_params = list(set(func_params))
             func_params_remove = []
             func_params_add = []
             func_params_name = []
@@ -596,7 +558,6 @@ class Update(Command):
             for v in related_func_calls:
                 for r in result_variabledependency:
                     if r.source_id == v and r.type == 'direct':
-                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         current_line = result_variable[r.target_id-1].line
                         belong_funcdef = check_def_id(current_line, result_functiondef)
                         if belong_funcdef != 0:
@@ -697,9 +658,6 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v and r.target_id not in varid_copy:
                         debug_detail_print(">>> target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        # if r.type == 'parameter' and result_variable[r.target_id-1].activation_id > 1: # and result_variable[r.target_id-1].type != 'normal':
-                        #     debug_detail_print(">>> PASS: target: {} <- {}, type = {}, target type = {}".format(r.source_id, r.target_id, r.type, result_variable[r.target_id-1].type), debug_mode)
-                        #     pass
                         if result_variable[r.target_id-1].type == 'function definition':
                             pass
                         elif result_variable[r.target_id-1].type == 'normal' and result_variable[r.target_id-1].activation_id == 1:
@@ -711,9 +669,6 @@ class Update(Command):
                             if r.target_id not in varid_end:
                                 varid_end.append(r.target_id)
                         else:
-                            # if result_variable[r.target_id-1].name == 'return' and result_variable[r.target_id-2].name == '--graybox--':
-                            #     debug_detail_print ("return {}, we add graybox {}".format(r.target_id, r.target_id-1), debug_mode)
-                            #     varid_copy.append(r.target_id-1)
                             varid_copy.append(r.target_id)
                             if result_variable[r.target_id-1].type == 'call' and result_variable[r.target_id-1].activation_id == 1:
                                 same_call = check_related_call_general(result_variable[r.target_id-1].name, result_variable[r.target_id-1].line, result_variable)
@@ -728,16 +683,12 @@ class Update(Command):
             debug_print("variable ID sub list(updated target_id)", varid_copy, debug_mode)
             debug_print("variable ID end list (updated target_id)", varid_end, debug_mode)
             debug_print("variable ID related call list (updated target_id)", varid_calls, debug_mode)
-            # varid_copy += varid_end
             debug_print("variable ID list (updated target_id)", varid_copy, debug_mode)
 
             for v in varid_copy:
                 for r in result_variabledependency:
                     if r.target_id == v and r.source_id not in varid_copy:
                         debug_detail_print(">>> source: {} -> {}, type = {}, source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        # if r.type == 'parameter' and result_variable[r.source_id-1].type == "--retgraybox--":
-                        #     debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
-                        #     pass
                         if result_variable[r.source_id-1].type == '--blackbox--':
                             debug_detail_print(">>> PASS: source: {} -> {}, type = {},  source type = {}".format(r.target_id, r.source_id, r.type, result_variable[r.source_id-1].type), debug_mode)
                             pass
@@ -790,8 +741,6 @@ class Update(Command):
             debug_print("variable ID end list (updated call)", varid_end, debug_mode)
             debug_print("variable ID list (updated call)", varid_copy, debug_mode)
 
-            # for i in varid_end:
-            #     varid_copy.remove(i)
             varids = varid_copy
 
             loop_list = [] # iterative variable, such as i and j
@@ -849,7 +798,7 @@ class Update(Command):
                 for r in result_variabledependency:
                     if r.source_id == v:
                         if r.type == "parameter":
-                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params: # and r.target_id not in varids:
+                            if result_variable[r.target_id-1].activation_id == 1 and r.target_id not in func_params:
                                 func_params.append(r.target_id)
             debug_print("var ID list (graybox updated)", varids, debug_mode)
             debug_print("function param list", func_params, debug_mode)
@@ -1021,7 +970,6 @@ class Update(Command):
             for v in related_func_calls:
                 for r in result_variabledependency:
                     if r.source_id == v and r.type == 'direct':
-                        # print("{} <- {}, type = {}".format(r.source_id, r.target_id, r.type))
                         current_line = result_variable[r.target_id-1].line
                         belong_funcdef = check_def_id(current_line, result_functiondef)
                         if belong_funcdef != 0:
@@ -1155,7 +1103,6 @@ class Update(Command):
                 if line_list[i] == 0:    
                     content = linecache.getline(metascript.name, i)
                     content_comment = content.rstrip() + ' #####L' + str(i) + '\n'
-                    #print(content_comment)
                     update_file.write(content_comment)
                 else:
                     content_comment = "# The previous script does something here, but we ignore them here\n"
@@ -1166,8 +1113,3 @@ class Update(Command):
                     update_file.write(content_comment)
 
         update_file.close()
-
-        # print ('Trial {} has been created'.format(metascript.trial_id))
-        # print ("Now, we generate a ProvScript for you: ProvScript.py")
-
-

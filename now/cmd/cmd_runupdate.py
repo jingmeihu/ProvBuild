@@ -14,7 +14,7 @@ from ..utils.cross_version import PY3
 from .command import Command
 
 
-class ScriptArgs(argparse.Action):                                               # pylint: disable=too-few-public-methods
+class ScriptArgs(argparse.Action): # pylint: disable=too-few-public-methods
     """Action to create script attribute"""
     def __call__(self, parser, namespace, values, option_string=None):
         if not values:
@@ -83,17 +83,10 @@ class RunUpdate(Command):
         add_arg("--dir", type=str,
                 help="set project path. The noworkflow database folder will "
                      "be created in this path. Default to script directory")
-        # add_arg("-v", "--verbose", action="store_true",
-        #         help="increase output verbosity")
 
     def execute(self, args):
-    	io.verbose = True # instead of using 'args.verbose', we always enable verbose
+    	io.verbose = True # enable verbose
         io.print_msg("removing noWorkflow boilerplate")
-
-        # script_name = 'ProvScript.py'
-        # script = os.path.realpath(script_name)
-        # # Create Metascript with params
-        # metascript = Metascript().read_cmd_args_runupdate(script_name, script)
 
         # Create Metascript with params
         metascript = Metascript().read_cmd_args_runupdate(args)
