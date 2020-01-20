@@ -1,39 +1,46 @@
 # ProvBuild
 
-## Dependencies
-use python `pip` to install the following packages: `flask`, `sqlalchemy`, `pyposast`, `future`, `apted`
+This repository provides the ProvBuild tool for the paper "Improving Data Scientist Efficiency with Provenance".
 
-## How to run ProvBuild interface
-1) cd into provbuild directory:
+## Tool
+ProvBuild is built on top of noWorkflow. Check out [noWorkflow's Github](https://github.com/gems-uff/noworkflow) for more information details.
 
-`cd provbuild`
+### Prerequisites
+This version of ProvBuild only support **Python 2.7**.
 
-2) run: (it will start a webpage and you can upload your script)
+To install ProvBuild, you should follow these basic instructions:
 
-`python app.py`
+If you have python `pip`, install the following packages:
 
+	$ pip install flask
+	$ pip install sqlalchemy
+	$ pip install pyposast
+	$ pip install future
+	$ pip install apted
 
-## How to run ProvBuild manually
-1) cd into provbuild directory:
+### Clone the Repository
 
-`cd provbuild`
+	$ git clone https://github.com/CrystalMei/ProvBuild.git
+	$ cd ProvBuild
 
-2) run (test file name):
+### Run ProvBuild Interface
 
-`./make.sh r <script_name>.py`
+- Step 1: Run `python app.py` and it will start a webpage as shown below:
+![StartPage](img/1.png)
 
-3) modify function (function name):
+- Step 2: Upload the test script `./example/Test.py`, then the webpage shows:
+![](img/2.png)
 
-`./make.sh uf <function_name>`
+- Step 3: Interact with ProvBuild, e.g., exploring variable `e` in the test script.
+![](img/3.png)
 
-4) modify variable (variable name):
+### Run ProvBuild Manually
+* Initial and run the given test Python script: `./make.sh r <script_name>.py`
 
-`./make.sh uv <variable_name>`
+* If you want to modify a function, get the ProvScript with the given function: `./make.sh uf <function_name>`
 
-5) run update:
+* If you want to modify a variable, get the ProvScript with the given variable: `./make.sh uv <variable_name>`
 
-`./make.sh d`
+* Execute the ProvScript and update the result: `./make.sh d`
 
-6) merge:
-
-`./make.sh m`
+* Merge the ProvScript into the original test script: `./make.sh m`
