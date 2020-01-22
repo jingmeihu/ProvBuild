@@ -873,7 +873,7 @@ class Update(Command):
             related_funcdef_list = []
             varids_remove = []
             for v in varids:
-                if result_variable[v-1].activation_id != 0: # and result_variable[v-1].activation_id != 1:
+                if result_variable[v-1].activation_id != 0:
                     ### this means it belongs to some functions (or loop or cond or even global functions), we will include their definitions
                     current_line = result_variable[v-1].line
                     belong_funcdef = check_def_id(current_line, result_functiondef)

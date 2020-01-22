@@ -20,8 +20,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = "HII"
 
 def stripComments(code):
-    #code = str(code) code code
-    #return re.sub(r'(?m) *#.*\n?', '\n', code)
     return code
 
 def cleanhtml(code):
@@ -43,7 +41,7 @@ def getFuncname(line):
 			name += i
 	return name
 
-
+### normal test editor interface
 @app.route('/normal', methods = ['GET', 'POST'])
 def normal():
    if request.method == 'POST':
@@ -75,6 +73,7 @@ def normal():
 		 					result=open("result.txt", "r").read(),
 		 					output=output)
 
+### normal execution
 @app.route("/runnormal", methods=['POST'])
 def runnormal():
 	file = open("record-time/session.txt", "r") 
@@ -104,6 +103,7 @@ def runnormal():
 							result=open("result.txt", "r").read(),
 							output=output)
 
+### finalize the result and time record
 @app.route("/finish", methods=['POST'])
 def finish():
 	# update finish time
@@ -124,6 +124,7 @@ def finish():
 
 	return render_template('index.html')
 
+### ProvBuild mode text editor interface
 @app.route('/provbuild', methods = ['GET', 'POST'])
 def provbuild():
    if request.method == 'POST':
@@ -161,6 +162,7 @@ def provbuild():
 		 					output=output, 
 		 					provscript=stripComments(open("ProvScript.py", "r").read().split("# This is the parameter setup part", 1)[1]))
 
+### given function/variable modification
 @app.route("/update", methods=['POST'])
 def update():
 	file = open("record-time/session.txt", "r") 
@@ -204,6 +206,7 @@ def update():
 					output=output, 
 					provscript=stripComments(open("ProvScript.py", "r").read().split("# This is the parameter setup part", 1)[1]))
 
+### ProvScript execution
 @app.route("/runupdate", methods=['POST'])
 def runupdate():
 	file = open("record-time/session.txt", "r") 
@@ -269,9 +272,7 @@ def runupdate():
 						output=output, 
 						provscript="Unknown Error")
 
-
-
-
+### merge ProvScript into the original script
 @app.route("/merge", methods=['POST'])
 def merge():
 	# update merge time
@@ -287,9 +288,6 @@ def merge():
 	filename = info[1] 
 	# merge output - new script
 	newfilename = "new-" + filename
-
-	# # keep user's record in ./results/ directory
-	# commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + './Task-results/' + username + '-' + filename)
 
 	# keep the current script for second try
 	commands.getstatusoutput ('cp ' + 'new-' + filename + ' ' + filename)
@@ -314,6 +312,7 @@ def merge():
 						output=output, 
 						provscript="Please enter a variable or function name and click the 'search' button to generate a ProvScript.")
 
+### finalize the result and time record
 @app.route("/provfinish", methods=['POST'])
 def provfinish():
 	# update finish time
@@ -334,6 +333,8 @@ def provfinish():
 
 	return render_template('index.html')
 
+
+### main interface
 @app.route("/")
 def main():
 	open('result.txt', 'w').close()
