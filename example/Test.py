@@ -1,3 +1,4 @@
+# original script
 def func_1(var1, var2, var3):
 	tmp = var1 + var2
 	for i in range(0, var3):

@@ -3,7 +3,7 @@
 This repository provides the ProvBuild tool for the paper "Improving Data Scientist Efficiency with Provenance".
 
 ## Tool
-ProvBuild is built on top of noWorkflow. Check out [noWorkflow's Github](https://github.com/gems-uff/noworkflow) for more information details.
+ProvBuild is built on top of noWorkflow (Version 1.11.2). Check out [noWorkflow's Github](https://github.com/gems-uff/noworkflow) for more information details.
 
 ### Prerequisites
 This version of ProvBuild only support **Python 2.7**.
@@ -44,3 +44,19 @@ If you have python `pip`, install the following packages:
 * Execute the ProvScript and update the result: `./make.sh d`
 
 * Merge the ProvScript into the original test script: `./make.sh m`
+
+
+## Acknowledgements
+This work was supported by NSF award #1450277, the U.S. Air Force and DARPA under contract FA8750-16-C-0045.
+
+## License Terms
+The MIT License (MIT)
+
+Copyright (c) 2013 Universidade Federal Fluminense (UFF), Polytechnic Institute of New York University.
+Copyright (c) 2018, 2019, 2020 President and Fellows of Harvard College.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

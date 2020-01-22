@@ -1,3 +1,7 @@
+# Copyright (c) 2018, 2019, 2020 President and Fellows of Harvard College.
+# This file is part of ProvBuild.
+
+# ProvBuild Interface
 import os
 import re
 import commands

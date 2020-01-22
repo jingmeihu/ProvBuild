@@ -1,7 +1,8 @@
 # Copyright (c) 2016 Universidade Federal Fluminense (UFF)
 # Copyright (c) 2016 Polytechnic Institute of New York University.
-# This file is part of noWorkflow.
-# Please, consult the license terms in the LICENSE file.
+# Copyright (c) 2018, 2019, 2020 President and Fellows of Harvard College.
+# This file is part of ProvBuild.
+
 """IPython Module"""
 from __future__ import (absolute_import, print_function,
                         division)
