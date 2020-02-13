@@ -27,7 +27,7 @@ If you have python `pip`, install the following packages:
 
 	$ git clone https://github.com/CrystalMei/ProvBuild.git
 	$ cd ProvBuild
-
+	
 ### ProvBuild Interface and Demo
 - Step 1: The user runs `python app.py` and it will start a webpage as shown below:
 ![StartPage](img/0.png)
@@ -53,7 +53,7 @@ If you have python `pip`, install the following packages:
 - Step 8: The original file will be updated with the user's modification:
 ![](img/8.png)
 
-### Run ProvBuild Manually
+### Run ProvBuild Manually (Linux/MaxOS only)
 * Initial and run the given test Python script: `./make.sh r <script_name>.py`
 
 * If you want to modify a function, get the ProvScript with the given function: `./make.sh uf <function_name>`
