@@ -32,7 +32,7 @@ If you have python `pip`, install the following packages:
 - Step 1: The user runs `python app.py` and it will start a webpage as shown below:
 ![StartPage](img/0.png)
 
-- Step 2: The user selects ProvBuild mode and upload demo script `./example/Demo.py`:
+- Step 2: The user selects ProvBuild mode and upload demo script `./example/Demo.py` (Note: We designed _User_ _name_ for user study in our paper (Study 1). It is not required for daily use.):
 ![](img/1.png)
 
 - Step 3: After script submission, the webpage will be updated:
